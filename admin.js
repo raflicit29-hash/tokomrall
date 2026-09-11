@@ -209,10 +209,8 @@ async function loadSession() {
   await loadProducts();
   populateCategories();
 }
-
-
 // ===============================
-// LOGIN
+// MAGIC LINK LOGIN
 // ===============================
 
 adminLoginForm.addEventListener(
@@ -224,149 +222,56 @@ adminLoginForm.addEventListener(
     const email =
       adminEmail.value.trim();
 
-    const password =
-      adminPassword.value;
-
-    if (!email || !password) {
+    if (!email) {
       showMessage(
-        "Email dan password wajib diisi.",
+        "Masukkan email admin terlebih dahulu.",
         "error"
       );
       return;
     }
 
     loginButton.disabled = true;
-    loginButton.textContent = "Login...";
+    loginButton.textContent =
+      "Mengirim link...";
 
-    const { data, error } =
-      await supabaseClient.auth.signInWithPassword({
+    const redirectUrl =
+      window.location.origin +
+      window.location.pathname;
+
+    const { error } =
+      await supabaseClient.auth.signInWithOtp({
         email,
-        password
+        options: {
+          emailRedirectTo: redirectUrl
+        }
       });
 
     if (error) {
 
-      console.error("Login error:", error);
+      console.error(
+        "Magic Link error:",
+        error
+      );
 
       showMessage(
-        "Login gagal: " + error.message,
+        "Gagal mengirim Magic Link: " +
+        error.message,
         "error"
       );
 
-      loginButton.disabled = false;
-      loginButton.textContent = "Login";
-
-      return;
-    }
-
-    const isAdmin =
-      await checkAdmin(data.user.id);
-
-    if (!isAdmin) {
-
-      await supabaseClient.auth.signOut();
+    } else {
 
       showMessage(
-        "Akun ini bukan admin.",
-        "error"
+        "Magic Link sudah dikirim. Cek Inbox/Spam email kamu, lalu klik link tersebut.",
+        "success"
       );
-
-      loginButton.disabled = false;
-      loginButton.textContent = "Login";
-
-      return;
     }
-
-    currentUser = data.user;
-
-    adminPassword.value = "";
 
     loginButton.disabled = false;
-    loginButton.textContent = "Login";
-
-    showDashboard();
-
-    populateCategories();
-
-    await loadProducts();
+    loginButton.textContent =
+      "📧 Kirim Link Login";
   }
 );
-
-
-// ===============================
-// FORGOT PASSWORD
-// ===============================
-
-if (forgotPasswordLink) {
-
-  forgotPasswordLink.addEventListener(
-    "click",
-    async (event) => {
-
-      event.preventDefault();
-
-      const email =
-        adminEmail.value.trim();
-
-      if (!email) {
-
-        showMessage(
-          "Masukkan email admin terlebih dahulu.",
-          "error"
-        );
-
-        adminEmail.focus();
-
-        return;
-      }
-
-      forgotPasswordLink.style.pointerEvents =
-        "none";
-
-      forgotPasswordLink.textContent =
-        "Mengirim email...";
-
-      const resetUrl =
-        window.location.origin +
-        window.location.pathname
-          .replace("admin.html", "reset-password.html");
-
-      const { error } =
-        await supabaseClient.auth
-          .resetPasswordForEmail(email, {
-            redirectTo: resetUrl
-          });
-
-      if (error) {
-
-        console.error(
-          "Reset password error:",
-          error
-        );
-
-        showMessage(
-          "Gagal mengirim reset password: " +
-          error.message,
-          "error"
-        );
-
-      } else {
-
-        showMessage(
-          "Link reset password sudah dikirim ke email tersebut. Cek Inbox/Spam.",
-          "success"
-        );
-      }
-
-      forgotPasswordLink.style.pointerEvents =
-        "";
-
-      forgotPasswordLink.textContent =
-        "Lupa Password?";
-    }
-  );
-}
-
 
 // ===============================
 // LOGOUT

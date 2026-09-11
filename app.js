@@ -1,40 +1,10 @@
-/* =========================================
-   MR ALL IN - CUSTOMER WEBSITE
-========================================= */
-
 const WHATSAPP_NUMBER = "6281330053178";
-const STORAGE_KEY = "mrallin_products";
 
-let activeCategory = "Semua";
-let searchKeyword = "";
+let products = [];
 
-
-/* =========================================
-   AMBIL PRODUK
-========================================= */
-
-function getProducts() {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-
-    if (saved) {
-      const data = JSON.parse(saved);
-
-      if (Array.isArray(data) && data.length > 0) {
-        return data;
-      }
-    }
-  } catch (error) {
-    console.error("Gagal membaca produk:", error);
-  }
-
-  return DEFAULT_PRODUCTS;
-}
-
-
-/* =========================================
-   FORMAT RUPIAH
-========================================= */
+const FALLBACK_PRODUCTS = Array.isArray(DEFAULT_PRODUCTS)
+  ? DEFAULT_PRODUCTS
+  : [];
 
 function formatRupiah(value) {
   return new Intl.NumberFormat("id-ID", {
@@ -44,428 +14,330 @@ function formatRupiah(value) {
   }).format(Number(value) || 0);
 }
 
-
-/* =========================================
-   WHATSAPP
-========================================= */
-
-function whatsappLink(message) {
-  return (
-    "https://wa.me/" +
-    WHATSAPP_NUMBER +
-    "?text=" +
-    encodeURIComponent(message)
-  );
+function escapeHTML(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
-
-function productWhatsApp(product) {
+function getWhatsAppLink(product) {
   const message =
-`Halo MR ALL IN 👋
+    `Halo MR ALL IN, saya mau pesan:%0A%0A` +
+    `Produk: ${encodeURIComponent(product.name)}%0A` +
+    `Harga: ${encodeURIComponent(formatRupiah(product.price))}%0A` +
+    `Stok: ${encodeURIComponent(product.stock)}%0A%0A` +
+    `Apakah masih tersedia?`;
 
-Saya tertarik dengan:
-
-*${product.name}*
-Harga: ${formatRupiah(product.price)}
-
-Apakah stok barang ini masih tersedia?
-
-Saya ingin tanya detail kondisi barang dan opsi COD / ambil langsung di Gubeng, Surabaya.`;
-
-  return whatsappLink(message);
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${message}`;
 }
 
+function categoryIcon(category) {
+  const icons = {
+    VGA: "▰",
+    Processor: "◉",
+    Motherboard: "▦",
+    RAM: "▥",
+    SSD: "▤",
+    HDD: "◍",
+    PSU: "▰",
+    Casing: "▤",
+    Monitor: "▣",
+    Aksesoris: "⌨",
+    "Paket PC": "▣"
+  };
 
-function generalWhatsApp() {
-  return whatsappLink(
-    "Halo MR ALL IN 👋 Saya mau tanya produk komputer yang tersedia."
-  );
+  return icons[category] || "▣";
 }
-
-
-/* =========================================
-   WHATSAPP BUTTON
-========================================= */
-
-function setupWhatsApp() {
-  const ids = [
-    "whatsappTop",
-    "whatsappHero",
-    "whatsappFloat"
-  ];
-
-  ids.forEach(id => {
-    const element = document.getElementById(id);
-
-    if (element) {
-      element.href = generalWhatsApp();
-    }
-  });
-}
-
-
-/* =========================================
-   ICON KATEGORI
-========================================= */
-
-const CATEGORY_ICONS = {
-  VGA: "▰",
-  Processor: "◉",
-  Motherboard: "▦",
-  RAM: "▥",
-  SSD: "▤",
-  HDD: "◍",
-  PSU: "◒",
-  Casing: "▤",
-  Monitor: "▣",
-  Aksesoris: "⌨",
-  "Paket PC": "▣"
-};
-
-
-/* =========================================
-   NAVIGATION
-========================================= */
-
-function renderNavigation() {
-  const navigation =
-    document.getElementById("navigation");
-
-  if (!navigation) return;
-
-  const categories = [
-    "Semua",
-    ...PRODUCT_CATEGORIES
-  ];
-
-  navigation.innerHTML =
-    categories.map(category => `
-      <a
-        href="#products"
-        data-category="${category}"
-      >
-        ${
-          category === "Semua"
-            ? "⌂ Beranda"
-            : category
-        }
-      </a>
-    `).join("");
-}
-
-
-/* =========================================
-   CATEGORY BOX
-========================================= */
 
 function renderCategories() {
-  const container =
-    document.getElementById("categories");
+  const container = document.querySelector("#categoryList");
 
   if (!container) return;
 
-  container.innerHTML =
-    PRODUCT_CATEGORIES.map(category => `
-      <button
-        type="button"
-        class="category"
-        data-category="${category}"
-      >
-        <div class="category-icon">
-          ${CATEGORY_ICONS[category] || "•"}
-        </div>
-
-        <div class="category-name">
-          ${category}
-        </div>
-      </button>
-    `).join("");
-}
-
-
-/* =========================================
-   FILTER
-========================================= */
-
-function renderFilters() {
-  const filters =
-    document.getElementById("filters");
-
-  if (!filters) return;
-
   const categories = [
     "Semua",
-    ...PRODUCT_CATEGORIES
+    ...new Set(products.map(product => product.category).filter(Boolean))
   ];
 
-  filters.innerHTML =
-    categories.map(category => `
+  container.innerHTML = categories
+    .map((category, index) => `
       <button
-        type="button"
-        data-category="${category}"
-        class="${
-          activeCategory === category
-            ? "active"
-            : ""
-        }"
+        class="category-btn ${index === 0 ? "active" : ""}"
+        data-category="${escapeHTML(category)}"
       >
-        ${category}
+        ${escapeHTML(category)}
       </button>
-    `).join("");
-}
+    `)
+    .join("");
 
+  container.querySelectorAll(".category-btn").forEach(button => {
+    button.addEventListener("click", () => {
+      container.querySelectorAll(".category-btn").forEach(item => {
+        item.classList.remove("active");
+      });
 
-/* =========================================
-   PRODUCT CARD
-========================================= */
+      button.classList.add("active");
 
-function createProductCard(product) {
-  const stock =
-    Number(product.stock) || 0;
-
-  const isReady = stock > 0;
-
-  const specs =
-    Array.isArray(product.specs)
-      ? product.specs
-      : [];
-
-  const specificationHTML =
-    specs.map(spec => `
-      <li>○ ${spec}</li>
-    `).join("");
-
-  const buttonHTML = isReady
-    ? `
-      <a
-        class="buy-button"
-        href="${productWhatsApp(product)}"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        ☘ Tanya via WhatsApp
-      </a>
-    `
-    : `
-      <span class="buy-button disabled">
-        Stok Habis
-      </span>
-    `;
-
-  return `
-    <article class="product-card">
-
-      <div class="product-image">
-
-        <div class="product-icon">
-          ${product.icon || "▣"}
-        </div>
-
-        <span class="stock ${
-          isReady ? "" : "empty"
-        }">
-          ${
-            isReady
-              ? `Stok: ${stock}`
-              : "Habis"
-          }
-        </span>
-
-      </div>
-
-      <div class="product-body">
-
-        <h3>
-          ${product.name || "Produk"}
-        </h3>
-
-        <ul class="product-specs">
-          ${specificationHTML}
-        </ul>
-
-        <span class="product-price">
-          ${formatRupiah(product.price)}
-        </span>
-
-        ${buttonHTML}
-
-      </div>
-
-    </article>
-  `;
-}
-
-
-/* =========================================
-   TAMPILKAN PRODUK
-========================================= */
-
-function renderProducts() {
-  const grid =
-    document.getElementById("productGrid");
-
-  const count =
-    document.getElementById("productCount");
-
-  if (!grid) return;
-
-  const products = getProducts();
-
-  const keyword =
-    searchKeyword.toLowerCase();
-
-  const filtered =
-    products.filter(product => {
-
-      const categoryMatch =
-        activeCategory === "Semua" ||
-        product.category === activeCategory;
-
-      const specs =
-        Array.isArray(product.specs)
-          ? product.specs
-          : [];
-
-      const text = [
-        product.name || "",
-        product.category || "",
-        ...specs
-      ]
-        .join(" ")
-        .toLowerCase();
-
-      const searchMatch =
-        text.includes(keyword);
-
-      return (
-        categoryMatch &&
-        searchMatch
-      );
+      const category = button.dataset.category;
+      renderProducts(category === "Semua" ? "" : category);
     });
+  });
+}
 
+function renderProducts(category = "", keyword = "") {
+  const container = document.querySelector("#productGrid");
 
-  if (count) {
-    count.textContent =
-      `${filtered.length} produk`;
+  if (!container) return;
+
+  let filtered = [...products];
+
+  if (category) {
+    filtered = filtered.filter(
+      product => product.category === category
+    );
   }
 
+  if (keyword) {
+    const search = keyword.toLowerCase();
 
-  if (filtered.length === 0) {
-    grid.innerHTML = `
-      <div style="
-        grid-column: 1 / -1;
-        text-align: center;
-        padding: 60px 20px;
-        color: #8299a8;
-      ">
-        Produk tidak ditemukan.
+    filtered = filtered.filter(product => {
+      const name = String(product.name || "").toLowerCase();
+      const cat = String(product.category || "").toLowerCase();
+      const specs = Array.isArray(product.specs)
+        ? product.specs.join(" ").toLowerCase()
+        : "";
+
+      return (
+        name.includes(search) ||
+        cat.includes(search) ||
+        specs.includes(search)
+      );
+    });
+  }
+
+  if (!filtered.length) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🔎</div>
+        <h3>Produk tidak ditemukan</h3>
+        <p>Coba kata kunci atau kategori lainnya.</p>
       </div>
     `;
-
     return;
   }
 
+  container.innerHTML = filtered
+    .map(product => {
+      const stock = Number(product.stock) || 0;
+      const specs = Array.isArray(product.specs)
+        ? product.specs
+        : [];
 
-  grid.innerHTML =
-    filtered
-      .map(createProductCard)
-      .join("");
+      const image = product.image_url
+        ? `
+          <img
+            class="product-image"
+            src="${escapeHTML(product.image_url)}"
+            alt="${escapeHTML(product.name)}"
+            loading="lazy"
+          >
+        `
+        : `
+          <div class="product-placeholder">
+            ${escapeHTML(product.icon || categoryIcon(product.category))}
+          </div>
+        `;
+
+      const stockClass =
+        stock <= 0
+          ? "out"
+          : stock <= 2
+            ? "low"
+            : "ready";
+
+      const stockText =
+        stock <= 0
+          ? "Habis"
+          : `Stok ${stock}`;
+
+      return `
+        <article class="product-card">
+          <div class="product-media">
+            ${image}
+            <span class="stock-badge ${stockClass}">
+              ${stockText}
+            </span>
+          </div>
+
+          <div class="product-content">
+            <div class="product-category">
+              ${escapeHTML(product.category || "Lainnya")}
+            </div>
+
+            <h3>${escapeHTML(product.name)}</h3>
+
+            <div class="product-specs">
+              ${specs
+                .map(spec => `<span>${escapeHTML(spec)}</span>`)
+                .join("")}
+            </div>
+
+            <div class="product-bottom">
+              <div class="product-price">
+                ${formatRupiah(product.price)}
+              </div>
+
+              ${
+                stock > 0
+                  ? `
+                    <a
+                      class="btn-order"
+                      href="${getWhatsAppLink(product)}"
+                      target="_blank"
+                      rel="noopener"
+                    >
+                      WhatsApp
+                    </a>
+                  `
+                  : `
+                    <button class="btn-order disabled" disabled>
+                      Habis
+                    </button>
+                  `
+              }
+            </div>
+          </div>
+        </article>
+      `;
+    })
+    .join("");
 }
 
+async function loadProducts() {
+  const container = document.querySelector("#productGrid");
 
-/* =========================================
-   CATEGORY CLICK
-========================================= */
+  if (container) {
+    container.innerHTML = `
+      <div class="loading-state">
+        <div class="loading-spinner"></div>
+        <p>Memuat produk...</p>
+      </div>
+    `;
+  }
 
-document.addEventListener(
-  "click",
-  event => {
-
-    const target =
-      event.target.closest(
-        "[data-category]"
-      );
-
-    if (!target) return;
-
-    event.preventDefault();
-
-    activeCategory =
-      target.dataset.category;
-
-    renderFilters();
-    renderProducts();
-
-    const section =
-      document.getElementById("products");
-
-    if (section) {
-      section.scrollIntoView({
-        behavior: "smooth"
+  try {
+    const { data, error } = await supabaseClient
+      .from("products")
+      .select("*")
+      .eq("is_active", true)
+      .order("created_at", {
+        ascending: false
       });
+
+    if (error) {
+      console.error("Supabase error:", error);
+      throw error;
+    }
+
+    products = Array.isArray(data) && data.length
+      ? data
+      : FALLBACK_PRODUCTS;
+
+  } catch (error) {
+    console.error("Gagal mengambil produk:", error);
+
+    products = FALLBACK_PRODUCTS;
+
+    if (container) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">⚠️</div>
+          <h3>Database belum tersedia</h3>
+          <p>Menampilkan produk sementara.</p>
+        </div>
+      `;
     }
   }
-);
 
-
-/* =========================================
-   SEARCH
-========================================= */
-
-function setupSearch() {
-  const input =
-    document.getElementById(
-      "searchInput"
-    );
-
-  if (!input) return;
-
-  input.addEventListener(
-    "input",
-    () => {
-      searchKeyword =
-        input.value.trim();
-
-      renderProducts();
-    }
-  );
-}
-
-
-/* =========================================
-   UPDATE DATA ANTAR TAB
-========================================= */
-
-window.addEventListener(
-  "storage",
-  event => {
-
-    if (
-      event.key === STORAGE_KEY
-    ) {
-      renderProducts();
-    }
-  }
-);
-
-
-/* =========================================
-   MULAI WEBSITE
-========================================= */
-
-function startWebsite() {
-  setupWhatsApp();
-  renderNavigation();
   renderCategories();
-  renderFilters();
-  setupSearch();
   renderProducts();
 }
 
+function setupSearch() {
+  const searchInput =
+    document.querySelector("#searchInput");
 
-if (
-  document.readyState === "loading"
-) {
+  if (!searchInput) return;
+
+  searchInput.addEventListener("input", event => {
+    const keyword = event.target.value.trim();
+
+    const activeCategory =
+      document.querySelector(
+        "#categoryList .category-btn.active"
+      );
+
+    const category =
+      activeCategory &&
+      activeCategory.dataset.category !== "Semua"
+        ? activeCategory.dataset.category
+        : "";
+
+    renderProducts(category, keyword);
+  });
+}
+
+function setupNavigation() {
+  document.querySelectorAll("[data-scroll]").forEach(link => {
+    link.addEventListener("click", event => {
+      const target = link.dataset.scroll;
+
+      const element = document.querySelector(target);
+
+      if (!element) return;
+
+      event.preventDefault();
+
+      element.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    });
+  });
+}
+
+function setupRealtime() {
+  if (!supabaseClient) return;
+
+  supabaseClient
+    .channel("products-live")
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "products"
+      },
+      () => {
+        loadProducts();
+      }
+    )
+    .subscribe();
+}
+
+async function startWebsite() {
+  setupNavigation();
+  setupSearch();
+
+  await loadProducts();
+
+  setupRealtime();
+}
+
+if (document.readyState === "loading") {
   document.addEventListener(
     "DOMContentLoaded",
     startWebsite

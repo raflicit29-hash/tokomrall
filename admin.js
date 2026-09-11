@@ -14,7 +14,6 @@ let selectedImageFile = null;
 const adminLogin = document.getElementById("adminLogin");
 const adminLoginForm = document.getElementById("adminLoginForm");
 const adminEmail = document.getElementById("adminEmail");
-const adminPassword = document.getElementById("adminPassword");
 const loginButton = document.getElementById("loginButton");
 
 const forgotPasswordLink =
@@ -239,12 +238,13 @@ adminLoginForm.addEventListener(
       window.location.pathname;
 
     const { error } =
-      await supabaseClient.auth.signInWithOtp({
+    await supabaseClient.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: redirectUrl
+            emailRedirectTo: redirectUrl,
+            shouldCreateUser: false
         }
-      });
+    });
 
     if (error) {
 

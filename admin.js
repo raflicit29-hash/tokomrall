@@ -128,19 +128,28 @@ function formatRupiah(value) {
 // ===============================
 
 async function checkAdmin(userId) {
+    try {
+        const { data, error } = await supabaseClient
+            .from("admins")
+            .select("user_id")
+            .eq("user_id", userId)
+            .maybeSingle();
 
-  const { data, error } = await supabaseClient
-    .from("admins")
-    .select("user_id")
-    .eq("user_id", userId)
-    .maybeSingle();
+        if (error) {
+            console.error("Admin check error:", error);
+            return false;
+        }
 
-  if (error) {
-    console.error("Admin check error:", error);
-    return false;
-  }
+        console.log("Admin check:", {
+            userId: userId,
+            adminData: data
+        });
 
-  return !!data;
+        return data !== null;
+    } catch (err) {
+        console.error("Admin check exception:", err);
+        return false;
+    }
 }
 
 

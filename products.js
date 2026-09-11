@@ -1,5 +1,8 @@
-const DEFAULT_PRODUCTS = [
+/* =========================================
+   MR ALL IN - DEFAULT PRODUCTS
+========================================= */
 
+const DEFAULT_PRODUCTS = [
   {
     id: 1,
     category: "VGA",
@@ -167,18 +170,14 @@ const DEFAULT_PRODUCTS = [
     ],
     icon: "▰"
   }
-
 ];
 
 
-/*
-==================================================
-KATEGORI TOKO
-==================================================
-*/
+/* =========================================
+   KATEGORI
+========================================= */
 
 const PRODUCT_CATEGORIES = [
-
   "VGA",
   "Processor",
   "Motherboard",
@@ -190,5 +189,4 @@ const PRODUCT_CATEGORIES = [
   "Monitor",
   "Aksesoris",
   "Paket PC"
-
 ];

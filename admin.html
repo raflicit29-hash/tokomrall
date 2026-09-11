@@ -2,31 +2,20 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
-  <meta
-    name="description"
-    content="Admin MR ALL IN - Kelola produk komputer"
-  >
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Admin MR ALL IN - Kelola produk komputer">
   <title>Admin - MR ALL IN</title>
-
   <link rel="stylesheet" href="styles.css">
 </head>
 
 <body class="admin-page">
 
-  <!-- LOGIN -->
+  <!-- ==================== LOGIN ==================== -->
   <section id="adminLogin" class="admin-login">
     <div class="admin-login-card">
 
       <div class="admin-brand">
-        <div class="admin-logo">
-          MR
-        </div>
-
+        <div class="admin-logo">MR</div>
         <h1>MR ALL IN</h1>
         <p>Admin Panel</p>
       </div>
@@ -34,10 +23,7 @@
       <form id="adminLoginForm">
 
         <div class="form-group">
-          <label for="adminEmail">
-            Email
-          </label>
-
+          <label for="adminEmail">Email</label>
           <input
             type="email"
             id="adminEmail"
@@ -48,10 +34,7 @@
         </div>
 
         <div class="form-group">
-          <label for="adminPassword">
-            Password
-          </label>
-
+          <label for="adminPassword">Password</label>
           <input
             type="password"
             id="adminPassword"
@@ -71,6 +54,22 @@
 
       </form>
 
+      <!-- LUPA PASSWORD -->
+      <a
+        href="#"
+        id="forgotPasswordLink"
+        style="
+          display:block;
+          margin-top:14px;
+          text-align:center;
+          color:#5da9ff;
+          text-decoration:none;
+          cursor:pointer;
+        "
+      >
+        Lupa Password?
+      </a>
+
       <div
         id="adminMessage"
         class="admin-message"
@@ -88,7 +87,7 @@
   </section>
 
 
-  <!-- DASHBOARD -->
+  <!-- ==================== DASHBOARD ==================== -->
   <section
     id="adminDashboard"
     class="admin-dashboard"
@@ -97,7 +96,6 @@
 
     <!-- HEADER -->
     <header class="admin-header">
-
       <div class="admin-header-inner">
 
         <div>
@@ -130,16 +128,14 @@
         </div>
 
       </div>
-
     </header>
 
 
     <!-- CONTENT -->
     <main class="admin-main">
 
-      <!-- MESSAGE -->
       <div
-        id="adminMessage"
+        id="dashboardMessage"
         class="admin-message"
         style="display:none;"
       ></div>
@@ -149,52 +145,41 @@
       <section class="admin-stats">
 
         <div class="admin-stat-card">
-          <div class="admin-stat-icon">
-            📦
-          </div>
+          <div class="admin-stat-icon">📦</div>
 
           <div>
             <span>Total Produk</span>
-            <strong id="statProducts">
-              0
-            </strong>
+            <strong id="statProducts">0</strong>
           </div>
         </div>
 
+
         <div class="admin-stat-card">
-          <div class="admin-stat-icon">
-            📊
-          </div>
+          <div class="admin-stat-icon">📊</div>
 
           <div>
             <span>Total Stok</span>
-            <strong id="statStock">
-              0
-            </strong>
+            <strong id="statStock">0</strong>
           </div>
         </div>
 
+
         <div class="admin-stat-card">
-          <div class="admin-stat-icon">
-            ✅
-          </div>
+          <div class="admin-stat-icon">✅</div>
 
           <div>
             <span>Produk Aktif</span>
-            <strong id="statActive">
-              0
-            </strong>
+            <strong id="statActive">0</strong>
           </div>
         </div>
 
       </section>
 
 
-      <!-- PRODUCT FORM -->
+      <!-- ==================== PRODUCT FORM ==================== -->
       <section class="admin-section">
 
         <div class="admin-section-header">
-
           <div>
             <h2 id="formTitle">
               Tambah Produk
@@ -204,7 +189,6 @@
               Tambahkan produk baru ke katalog MR ALL IN.
             </p>
           </div>
-
         </div>
 
 
@@ -236,6 +220,7 @@
               </div>
             </div>
 
+
             <div class="image-upload-row">
 
               <label
@@ -252,6 +237,7 @@
                 hidden
               >
 
+
               <button
                 type="button"
                 id="removeImageButton"
@@ -262,6 +248,7 @@
               </button>
 
             </div>
+
 
             <small class="form-help">
               JPG, JPEG, PNG atau WEBP. Maksimal 5 MB.
@@ -390,7 +377,7 @@
       </section>
 
 
-      <!-- PRODUCT LIST -->
+      <!-- ==================== PRODUCT LIST ==================== -->
       <section class="admin-section">
 
         <div class="admin-section-header">
@@ -403,6 +390,7 @@
             <p>
               Kelola semua produk yang tampil di toko.
             </p>
+
           </div>
 
         </div>
@@ -412,10 +400,12 @@
           id="adminProductList"
           class="admin-product-list"
         >
+
           <div class="loading-state">
             <div class="loading-spinner"></div>
             <p>Memuat produk...</p>
           </div>
+
         </div>
 
       </section>
@@ -425,7 +415,8 @@
   </section>
 
 
-  <!-- SUPABASE -->
+  <!-- ==================== SUPABASE ==================== -->
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script src="supabase-config.js"></script>

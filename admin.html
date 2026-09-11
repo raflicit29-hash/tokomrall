@@ -2,368 +2,437 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0"
   >
-
-  <title>MR ALL IN — Admin</title>
-
-  <link
-    rel="icon"
-    href="assets/logo.png"
+  <meta
+    name="description"
+    content="Admin MR ALL IN - Kelola produk komputer"
   >
 
-  <link
-    rel="stylesheet"
-    href="styles.css"
-  >
+  <title>Admin - MR ALL IN</title>
+
+  <link rel="stylesheet" href="styles.css">
 </head>
 
-<body>
+<body class="admin-page">
 
-  <main class="admin-container">
+  <!-- LOGIN -->
+  <section id="adminLogin" class="admin-login">
+    <div class="admin-login-card">
 
-    <!-- LOGIN -->
+      <div class="admin-brand">
+        <div class="admin-logo">
+          MR
+        </div>
 
-    <section
-      id="loginSection"
-      class="admin-login"
-    >
+        <h1>MR ALL IN</h1>
+        <p>Admin Panel</p>
+      </div>
 
-      <img
-        src="assets/logo.png"
-        alt="MR ALL IN"
-        style="
-          width: 150px;
-          height: auto;
-          margin: 0 auto 20px;
-          object-fit: contain;
-        "
-      >
-
-      <h1>
-        Admin MR ALL IN
-      </h1>
-
-      <p>
-        Masuk untuk mengelola produk toko.
-      </p>
-
-      <form id="loginForm">
+      <form id="adminLoginForm">
 
         <div class="form-group">
-
-          <label for="adminPassword">
-            Password Admin
+          <label for="adminEmail">
+            Email
           </label>
 
           <input
-            id="adminPassword"
+            type="email"
+            id="adminEmail"
+            placeholder="Email admin"
+            autocomplete="email"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="adminPassword">
+            Password
+          </label>
+
+          <input
             type="password"
-            placeholder="Masukkan password"
+            id="adminPassword"
+            placeholder="Password"
             autocomplete="current-password"
             required
           >
-
         </div>
 
-        <button type="submit">
-          Masuk ke Admin
+        <button
+          type="submit"
+          id="loginButton"
+          class="btn-primary"
+        >
+          Login
         </button>
 
       </form>
 
       <div
-        id="loginError"
-        class="admin-error"
+        id="adminMessage"
+        class="admin-message"
+        style="display:none;"
+      ></div>
+
+      <a
+        href="index.html"
+        class="back-store-link"
       >
-        Password salah.
-      </div>
+        ← Kembali ke toko
+      </a>
 
-    </section>
+    </div>
+  </section>
 
 
-    <!-- ADMIN PANEL -->
+  <!-- DASHBOARD -->
+  <section
+    id="adminDashboard"
+    class="admin-dashboard"
+    style="display:none;"
+  >
 
-    <section
-      id="adminPanel"
-      style="display: none;"
-    >
+    <!-- HEADER -->
+    <header class="admin-header">
 
-      <!-- HEADER -->
-
-      <div class="admin-header">
+      <div class="admin-header-inner">
 
         <div>
+          <div class="admin-header-title">
+            MR ALL IN
+          </div>
 
-          <h1>
+          <div class="admin-header-subtitle">
             Dashboard Admin
-          </h1>
-
-          <p>
-            Kelola produk, harga dan stok MR ALL IN.
-          </p>
-
+          </div>
         </div>
 
-        <div class="admin-actions">
+        <div class="admin-header-actions">
 
           <a
             href="index.html"
+            class="btn-secondary"
           >
             Lihat Toko
           </a>
 
           <button
-            id="logoutButton"
             type="button"
+            id="logoutButton"
+            class="btn-danger"
           >
-            Keluar
+            Logout
           </button>
 
         </div>
 
       </div>
 
+    </header>
+
+
+    <!-- CONTENT -->
+    <main class="admin-main">
+
+      <!-- MESSAGE -->
+      <div
+        id="adminMessage"
+        class="admin-message"
+        style="display:none;"
+      ></div>
+
 
       <!-- STATS -->
+      <section class="admin-stats">
 
-      <div class="admin-stats">
+        <div class="admin-stat-card">
+          <div class="admin-stat-icon">
+            📦
+          </div>
 
-        <div class="admin-stat">
+          <div>
+            <span>Total Produk</span>
+            <strong id="statProducts">
+              0
+            </strong>
+          </div>
+        </div>
 
-          <span>
-            Total Produk
-          </span>
+        <div class="admin-stat-card">
+          <div class="admin-stat-icon">
+            📊
+          </div>
 
-          <strong id="totalProducts">
-            0
-          </strong>
+          <div>
+            <span>Total Stok</span>
+            <strong id="statStock">
+              0
+            </strong>
+          </div>
+        </div>
+
+        <div class="admin-stat-card">
+          <div class="admin-stat-icon">
+            ✅
+          </div>
+
+          <div>
+            <span>Produk Aktif</span>
+            <strong id="statActive">
+              0
+            </strong>
+          </div>
+        </div>
+
+      </section>
+
+
+      <!-- PRODUCT FORM -->
+      <section class="admin-section">
+
+        <div class="admin-section-header">
+
+          <div>
+            <h2 id="formTitle">
+              Tambah Produk
+            </h2>
+
+            <p>
+              Tambahkan produk baru ke katalog MR ALL IN.
+            </p>
+          </div>
 
         </div>
 
-        <div class="admin-stat">
 
-          <span>
-            Produk Tersedia
-          </span>
+        <form
+          id="productForm"
+          class="product-form"
+        >
 
-          <strong id="availableProducts">
-            0
-          </strong>
-
-        </div>
-
-        <div class="admin-stat">
-
-          <span>
-            Stok Total
-          </span>
-
-          <strong id="totalStock">
-            0
-          </strong>
-
-        </div>
-
-      </div>
-
-
-      <!-- CONTENT -->
-
-      <div class="admin-layout">
-
-
-        <!-- FORM -->
-
-        <section class="admin-form">
-
-          <h2 id="formTitle">
-            Tambah Produk
-          </h2>
-
-          <form id="productForm">
-
-            <input
-              id="productId"
-              type="hidden"
-            >
-
-
-            <div class="form-group">
-
-              <label for="productName">
-                Nama Produk
-              </label>
-
-              <input
-                id="productName"
-                type="text"
-                placeholder="Contoh: RTX 3060 12GB"
-                required
-              >
-
-            </div>
-
-
-            <div class="form-group">
-
-              <label for="productCategory">
-                Kategori
-              </label>
-
-              <select
-                id="productCategory"
-                required
-              >
-
-                <option value="">
-                  Pilih kategori
-                </option>
-
-              </select>
-
-            </div>
-
-
-            <div class="form-group">
-
-              <label for="productPrice">
-                Harga
-              </label>
-
-              <input
-                id="productPrice"
-                type="number"
-                min="0"
-                placeholder="3450000"
-                required
-              >
-
-            </div>
-
-
-            <div class="form-group">
-
-              <label for="productStock">
-                Stok
-              </label>
-
-              <input
-                id="productStock"
-                type="number"
-                min="0"
-                placeholder="1"
-                required
-              >
-
-            </div>
-
-
-            <div class="form-group">
-
-              <label for="productSpecs">
-                Spesifikasi
-              </label>
-
-              <textarea
-                id="productSpecs"
-                placeholder="12GB GDDR6&#10;192-bit&#10;Ray Tracing • DLSS"
-              ></textarea>
-
-              <div class="form-help">
-                Satu spesifikasi per baris.
-              </div>
-
-            </div>
-
-
-            <div class="form-group">
-
-              <label for="productIcon">
-                Icon
-              </label>
-
-              <input
-                id="productIcon"
-                type="text"
-                maxlength="4"
-                placeholder="▰"
-              >
-
-            </div>
-
-
-            <div class="form-buttons">
-
-              <button
-                id="cancelEdit"
-                class="form-cancel"
-                type="button"
-                style="display: none;"
-              >
-                Batal
-              </button>
-
-              <button
-                class="form-submit"
-                type="submit"
-              >
-                Simpan Produk
-              </button>
-
-            </div>
-
-          </form>
-
-        </section>
-
-
-        <!-- PRODUCT LIST -->
-
-        <section>
-
-          <div
-            class="section-heading"
-            style="margin-bottom: 18px;"
+          <input
+            type="hidden"
+            id="productId"
           >
 
-            <div>
 
-              <span class="section-label">
-                INVENTORY
-              </span>
+          <!-- FOTO -->
+          <div class="form-group form-group-full">
 
-              <h2>
-                Daftar Produk
-              </h2>
+            <label for="productImage">
+              Foto Produk
+            </label>
+
+            <div
+              id="imagePreview"
+              class="image-preview"
+            >
+              <div class="image-preview-empty">
+                📷<br>
+                Belum ada foto
+              </div>
+            </div>
+
+            <div class="image-upload-row">
+
+              <label
+                for="productImage"
+                class="btn-secondary upload-button"
+              >
+                📸 Pilih Foto
+              </label>
+
+              <input
+                type="file"
+                id="productImage"
+                accept="image/*"
+                hidden
+              >
+
+              <button
+                type="button"
+                id="removeImageButton"
+                class="btn-danger"
+                style="display:none;"
+              >
+                🗑️ Hapus Foto
+              </button>
 
             </div>
+
+            <small class="form-help">
+              JPG, JPEG, PNG atau WEBP. Maksimal 5 MB.
+            </small>
 
           </div>
 
-          <div
-            id="adminProductList"
-            class="admin-product-list"
-          ></div>
 
-        </section>
+          <!-- NAMA -->
+          <div class="form-group">
 
-      </div>
+            <label for="productName">
+              Nama Produk
+            </label>
 
-    </section>
+            <input
+              type="text"
+              id="productName"
+              placeholder="Contoh: RTX 3060 12GB"
+              required
+            >
 
-  </main>
+          </div>
 
 
-  <!-- JAVASCRIPT -->
+          <!-- KATEGORI -->
+          <div class="form-group">
 
- <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase-config.js"></script>
-<script src="products.js"></script>
-<script src="admin.js"></script>
+            <label for="productCategory">
+              Kategori
+            </label>
+
+            <select
+              id="productCategory"
+              required
+            ></select>
+
+          </div>
+
+
+          <!-- HARGA -->
+          <div class="form-group">
+
+            <label for="productPrice">
+              Harga
+            </label>
+
+            <input
+              type="number"
+              id="productPrice"
+              placeholder="Contoh: 3500000"
+              min="0"
+              step="1000"
+              required
+            >
+
+            <small class="form-help">
+              Masukkan angka tanpa titik atau Rp.
+            </small>
+
+          </div>
+
+
+          <!-- STOK -->
+          <div class="form-group">
+
+            <label for="productStock">
+              Stok
+            </label>
+
+            <input
+              type="number"
+              id="productStock"
+              placeholder="Contoh: 2"
+              min="0"
+              step="1"
+              required
+            >
+
+          </div>
+
+
+          <!-- SPESIFIKASI -->
+          <div class="form-group form-group-full">
+
+            <label for="productSpecs">
+              Spesifikasi
+            </label>
+
+            <textarea
+              id="productSpecs"
+              rows="5"
+              placeholder="Satu spesifikasi per baris&#10;Contoh:&#10;12GB GDDR6&#10;192-bit&#10;Ray Tracing • DLSS"
+            ></textarea>
+
+            <small class="form-help">
+              Tulis satu spesifikasi di setiap baris.
+            </small>
+
+          </div>
+
+
+          <!-- BUTTON -->
+          <div class="form-actions">
+
+            <button
+              type="submit"
+              id="saveProductButton"
+              class="btn-primary"
+            >
+              Tambah Produk
+            </button>
+
+            <button
+              type="button"
+              id="cancelEditButton"
+              class="btn-secondary"
+            >
+              Reset
+            </button>
+
+          </div>
+
+        </form>
+
+      </section>
+
+
+      <!-- PRODUCT LIST -->
+      <section class="admin-section">
+
+        <div class="admin-section-header">
+
+          <div>
+            <h2>
+              Daftar Produk
+            </h2>
+
+            <p>
+              Kelola semua produk yang tampil di toko.
+            </p>
+          </div>
+
+        </div>
+
+
+        <div
+          id="adminProductList"
+          class="admin-product-list"
+        >
+          <div class="loading-state">
+            <div class="loading-spinner"></div>
+            <p>Memuat produk...</p>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+  </section>
+
+
+  <!-- SUPABASE -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script src="supabase-config.js"></script>
+
+  <script src="products.js"></script>
+
+  <script src="admin.js"></script>
 
 </body>
 </html>

@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>MR ALL IN — Admin</title>
+
+  <link
+    rel="stylesheet"
+    href="styles.css"
+  >
+
+</head>
+
+
+<body>
+
+
+  <!-- ==============================
+       ADMIN HEADER
+  =============================== -->
+
+  <header class="topbar">
+
+    <a
+      href="index.html"
+      class="brand"
+    >
+
+      <img
+        src="assets/logo.png"
+        alt="MR ALL IN"
+      >
+
+      <div>
+
+        <strong>
+          MR ALL IN
+        </strong>
+
+        <span>
+          ADMIN PANEL
+        </span>
+
+      </div>
+
+    </a>
+
+
+    <a
+      href="index.html"
+      class="button secondary"
+    >
+      ← Lihat Toko
+    </a>
+
+  </header>
+
+
+
+  <main class="admin-container">
+
+
+    <!-- ==============================
+         LOGIN
+    =============================== -->
+
+    <section
+      id="adminLogin"
+      class="admin-login"
+    >
+
+      <div class="admin-logo">
+        MR<br>
+        <strong>ALL IN</strong>
+      </div>
+
+
+      <h1>
+        Admin Panel
+      </h1>
+
+
+      <p>
+        Masuk untuk mengelola
+        produk, harga dan stok.
+      </p>
+
+
+      <input
+        type="password"
+        id="adminPassword"
+        placeholder="Password admin"
+      >
+
+
+      <button
+        id="loginButton"
+        class="button primary admin-button"
+      >
+        🔐 Masuk Admin
+      </button>
+
+
+      <small class="demo-note">
+        Demo password:
+        <b>mrallin2026</b>
+      </small>
+
+    </section>
+
+
+
+    <!-- ==============================
+         ADMIN PANEL
+    =============================== -->
+
+    <section
+      id="adminPanel"
+      hidden
+    >
+
+
+      <!-- HEADER PANEL -->
+
+      <div class="admin-header">
+
+        <div>
+
+          <div class="eyebrow">
+            MR ALL IN • CONTROL CENTER
+          </div>
+
+          <h1>
+            Kelola Produk
+          </h1>
+
+          <p>
+            Tambah, edit harga dan stok
+            yang tampil di website customer.
+          </p>
+
+        </div>
+
+
+        <button
+          id="logoutButton"
+          class="button secondary"
+        >
+          Keluar
+        </button>
+
+      </div>
+
+
+
+      <!-- ==============================
+           STATISTIK
+      =============================== -->
+
+      <div
+        id="adminStats"
+        class="admin-stats"
+      ></div>
+
+
+
+      <!-- ==============================
+           FORM + LIST
+      =============================== -->
+
+      <div class="admin-layout">
+
+
+        <!-- FORM PRODUK -->
+
+        <form
+          id="productForm"
+          class="admin-form"
+        >
+
+          <h2>
+            Tambah / Edit Produk
+          </h2>
+
+
+          <input
+            type="hidden"
+            id="productId"
+          >
+
+
+          <label>
+            Nama Produk
+
+            <input
+              type="text"
+              id="productName"
+              placeholder="Contoh: RTX 3060 12GB"
+              required
+            >
+
+          </label>
+
+
+
+          <label>
+            Kategori
+
+            <select
+              id="productCategory"
+              required
+            >
+
+              <option value="">
+                Pilih kategori
+              </option>
+
+            </select>
+
+          </label>
+
+
+
+          <label>
+            Harga
+
+            <input
+              type="number"
+              id="productPrice"
+              placeholder="Contoh: 3500000"
+              min="0"
+              required
+            >
+
+          </label>
+
+
+
+          <label>
+            Stok
+
+            <input
+              type="number"
+              id="productStock"
+              placeholder="Contoh: 3"
+              min="0"
+              required
+            >
+
+          </label>
+
+
+
+          <label>
+            Spesifikasi
+
+            <textarea
+              id="productSpecs"
+              rows="5"
+              placeholder="12GB GDDR6 | 192-bit | Ray Tracing"
+            ></textarea>
+
+            <small>
+              Pisahkan spesifikasi dengan tanda
+              <b>|</b>
+            </small>
+
+          </label>
+
+
+
+          <label>
+            Ikon Produk
+
+            <input
+              type="text"
+              id="productIcon"
+              value="▰"
+              maxlength="3"
+            >
+
+          </label>
+
+
+
+          <div class="form-buttons">
+
+            <button
+              type="submit"
+              class="button primary"
+            >
+              💾 Simpan Produk
+            </button>
+
+
+            <button
+              type="button"
+              id="newProductButton"
+              class="button secondary"
+            >
+              ＋ Produk Baru
+            </button>
+
+          </div>
+
+        </form>
+
+
+
+        <!-- LIST PRODUK -->
+
+        <div>
+
+          <div class="list-header">
+
+            <h2>
+              Daftar Produk
+            </h2>
+
+            <span id="adminProductCount">
+              0 produk
+            </span>
+
+          </div>
+
+
+          <div
+            id="adminProductList"
+            class="admin-product-list"
+          ></div>
+
+        </div>
+
+
+      </div>
+
+
+    </section>
+
+  </main>
+
+
+
+  <script src="products.js"></script>
+  <script src="admin.js"></script>
+
+
+</body>
+
+</html>

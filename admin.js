@@ -1,16 +1,12 @@
 /* =========================================
-   MR ALL IN — ADMIN PANEL
+   MR ALL IN - ADMIN
 ========================================= */
 
 const STORAGE_KEY = "mrallin_products";
 
-/*
-   PASSWORD DEMO
-   Nanti versi produksi kita ganti dengan
-   authentication database.
-*/
-
 const ADMIN_PASSWORD = "mrallin2026";
+
+const LOGIN_KEY = "mrallin_admin_login";
 
 
 /* =========================================
@@ -18,16 +14,19 @@ const ADMIN_PASSWORD = "mrallin2026";
 ========================================= */
 
 const loginSection =
-  document.getElementById("adminLogin");
+  document.getElementById("loginSection");
 
 const adminPanel =
   document.getElementById("adminPanel");
 
+const loginForm =
+  document.getElementById("loginForm");
+
 const passwordInput =
   document.getElementById("adminPassword");
 
-const loginButton =
-  document.getElementById("loginButton");
+const loginError =
+  document.getElementById("loginError");
 
 const logoutButton =
   document.getElementById("logoutButton");
@@ -56,21 +55,27 @@ const productSpecs =
 const productIcon =
   document.getElementById("productIcon");
 
-const newProductButton =
-  document.getElementById("newProductButton");
+const formTitle =
+  document.getElementById("formTitle");
 
-const adminProductList =
+const cancelEdit =
+  document.getElementById("cancelEdit");
+
+const productList =
   document.getElementById("adminProductList");
 
-const adminStats =
-  document.getElementById("adminStats");
+const totalProducts =
+  document.getElementById("totalProducts");
 
-const adminProductCount =
-  document.getElementById("adminProductCount");
+const availableProducts =
+  document.getElementById("availableProducts");
+
+const totalStock =
+  document.getElementById("totalStock");
 
 
 /* =========================================
-   DATA PRODUK
+   DATA
 ========================================= */
 
 function getProducts() {
@@ -82,29 +87,36 @@ function getProducts() {
 
     if (saved) {
 
-      return JSON.parse(saved);
+      const data =
+        JSON.parse(saved);
 
+      if (
+        Array.isArray(data) &&
+        data.length > 0
+      ) {
+        return data;
+      }
     }
 
   } catch (error) {
 
     console.error(
-      "Gagal membaca database lokal:",
+      "Gagal membaca produk:",
       error
     );
 
   }
 
   return DEFAULT_PRODUCTS.map(
-    product => ({ ...product })
+    product => ({
+      ...product,
+      specs: Array.isArray(product.specs)
+        ? [...product.specs]
+        : []
+    })
   );
-
 }
 
-
-/* =========================================
-   SIMPAN PRODUK
-========================================= */
 
 function saveProducts(products) {
 
@@ -117,10 +129,10 @@ function saveProducts(products) {
 
 
 /* =========================================
-   FORMAT RUPIAH
+   FORMAT
 ========================================= */
 
-function formatPrice(number) {
+function formatRupiah(value) {
 
   return new Intl.NumberFormat(
     "id-ID",
@@ -129,16 +141,131 @@ function formatPrice(number) {
       currency: "IDR",
       maximumFractionDigits: 0
     }
-  ).format(number);
+  ).format(Number(value) || 0);
 
 }
 
 
 /* =========================================
-   ISI KATEGORI
+   LOGIN
 ========================================= */
 
-function loadCategories() {
+function showAdmin() {
+
+  loginSection.style.display =
+    "none";
+
+  adminPanel.style.display =
+    "block";
+
+  renderCategories();
+  renderProducts();
+  updateStats();
+
+}
+
+
+function showLogin() {
+
+  loginSection.style.display =
+    "block";
+
+  adminPanel.style.display =
+    "none";
+
+}
+
+
+function checkLogin() {
+
+  if (
+    sessionStorage.getItem(
+      LOGIN_KEY
+    ) === "true"
+  ) {
+
+    showAdmin();
+
+  } else {
+
+    showLogin();
+
+  }
+
+}
+
+
+/* =========================================
+   LOGIN FORM
+========================================= */
+
+loginForm.addEventListener(
+  "submit",
+  event => {
+
+    event.preventDefault();
+
+    const password =
+      passwordInput.value;
+
+    if (
+      password ===
+      ADMIN_PASSWORD
+    ) {
+
+      sessionStorage.setItem(
+        LOGIN_KEY,
+        "true"
+      );
+
+      passwordInput.value = "";
+
+      loginError.style.display =
+        "none";
+
+      showAdmin();
+
+    } else {
+
+      loginError.textContent =
+        "Password admin salah.";
+
+      loginError.style.display =
+        "block";
+
+      passwordInput.value = "";
+
+      passwordInput.focus();
+
+    }
+
+  }
+);
+
+
+/* =========================================
+   LOGOUT
+========================================= */
+
+logoutButton.addEventListener(
+  "click",
+  () => {
+
+    sessionStorage.removeItem(
+      LOGIN_KEY
+    );
+
+    showLogin();
+
+  }
+);
+
+
+/* =========================================
+   CATEGORY
+========================================= */
+
+function renderCategories() {
 
   productCategory.innerHTML = `
     <option value="">
@@ -150,7 +277,9 @@ function loadCategories() {
     category => {
 
       const option =
-        document.createElement("option");
+        document.createElement(
+          "option"
+        );
 
       option.value = category;
       option.textContent = category;
@@ -166,177 +295,199 @@ function loadCategories() {
 
 
 /* =========================================
-   LOGIN
+   RESET FORM
 ========================================= */
 
-function login() {
+function resetForm() {
 
-  const password =
-    passwordInput.value;
+  productForm.reset();
 
-  if (
-    password === ADMIN_PASSWORD
-  ) {
+  productId.value = "";
 
-    sessionStorage.setItem(
-      "mrallin_admin",
-      "true"
-    );
+  formTitle.textContent =
+    "Tambah Produk";
 
-    showAdmin();
+  cancelEdit.style.display =
+    "none";
 
-  } else {
+}
+
+
+/* =========================================
+   TAMBAH / EDIT
+========================================= */
+
+productForm.addEventListener(
+  "submit",
+  event => {
+
+    event.preventDefault();
+
+    const name =
+      productName.value.trim();
+
+    const category =
+      productCategory.value;
+
+    const price =
+      Number(productPrice.value);
+
+    const stock =
+      Number(productStock.value);
+
+    const specs =
+      productSpecs.value
+        .split("\n")
+        .map(item => item.trim())
+        .filter(Boolean);
+
+    const icon =
+      productIcon.value.trim() ||
+      "▣";
+
+
+    if (!name) {
+
+      alert(
+        "Masukkan nama produk."
+      );
+
+      return;
+
+    }
+
+
+    if (!category) {
+
+      alert(
+        "Pilih kategori produk."
+      );
+
+      return;
+
+    }
+
+
+    if (
+      !Number.isFinite(price) ||
+      price < 0
+    ) {
+
+      alert(
+        "Harga tidak valid."
+      );
+
+      return;
+
+    }
+
+
+    if (
+      !Number.isFinite(stock) ||
+      stock < 0
+    ) {
+
+      alert(
+        "Stok tidak valid."
+      );
+
+      return;
+
+    }
+
+
+    const products =
+      getProducts();
+
+
+    if (productId.value) {
+
+      const id =
+        Number(productId.value);
+
+      const index =
+        products.findIndex(
+          product =>
+            Number(product.id) === id
+        );
+
+
+      if (index !== -1) {
+
+        products[index] = {
+          ...products[index],
+
+          category,
+          name,
+          price,
+          stock,
+          specs,
+          icon
+        };
+
+      }
+
+    } else {
+
+      const ids =
+        products
+          .map(product =>
+            Number(product.id)
+          )
+          .filter(Number.isFinite);
+
+      const newId =
+        ids.length > 0
+          ? Math.max(...ids) + 1
+          : 1;
+
+
+      products.push({
+
+        id: newId,
+        category,
+        name,
+        price,
+        stock,
+        specs,
+        icon
+
+      });
+
+    }
+
+
+    saveProducts(products);
+
+    resetForm();
+
+    renderProducts();
+    updateStats();
 
     alert(
-      "Password admin salah."
+      "Produk berhasil disimpan."
     );
-
-    passwordInput.value = "";
-
-    passwordInput.focus();
 
   }
-
-}
-
-
-/* =========================================
-   TAMPILKAN ADMIN
-========================================= */
-
-function showAdmin() {
-
-  loginSection.hidden = true;
-
-  adminPanel.hidden = false;
-
-  loadCategories();
-
-  renderAdmin();
-
-}
+);
 
 
 /* =========================================
-   CEK SESSION
+   RENDER PRODUCT
 ========================================= */
 
-function checkLogin() {
-
-  const loggedIn =
-    sessionStorage.getItem(
-      "mrallin_admin"
-    );
-
-  if (loggedIn === "true") {
-
-    showAdmin();
-
-  }
-
-}
-
-
-/* =========================================
-   LOGOUT
-========================================= */
-
-function logout() {
-
-  sessionStorage.removeItem(
-    "mrallin_admin"
-  );
-
-  location.reload();
-
-}
-
-
-/* =========================================
-   RENDER STATISTIK
-========================================= */
-
-function renderStats(products) {
-
-  const totalProducts =
-    products.length;
-
-  const readyProducts =
-    products.filter(
-      product =>
-        Number(product.stock) > 0
-    ).length;
-
-  const emptyProducts =
-    products.filter(
-      product =>
-        Number(product.stock) <= 0
-    ).length;
-
-  const totalStock =
-    products.reduce(
-      (total, product) =>
-        total +
-        Number(product.stock || 0),
-      0
-    );
-
-
-  adminStats.innerHTML = `
-
-    <div>
-      <b>${totalProducts}</b>
-      <small>Jenis Produk</small>
-    </div>
-
-    <div>
-      <b>${totalStock}</b>
-      <small>Total Stok</small>
-    </div>
-
-    <div>
-      <b>${readyProducts}</b>
-      <small>Produk Ready</small>
-    </div>
-
-    <div>
-      <b>${emptyProducts}</b>
-      <small>Produk Habis</small>
-    </div>
-
-  `;
-
-}
-
-
-/* =========================================
-   RENDER LIST PRODUK
-========================================= */
-
-function renderAdmin() {
+function renderProducts() {
 
   const products =
     getProducts();
 
 
-  renderStats(products);
-
-
-  adminProductCount.textContent =
-    products.length +
-    " produk";
-
-
   if (products.length === 0) {
 
-    adminProductList.innerHTML = `
-
-      <div class="empty-admin">
-
+    productList.innerHTML = `
+      <div class="admin-empty">
         Belum ada produk.
-
       </div>
-
     `;
 
     return;
@@ -344,148 +495,114 @@ function renderAdmin() {
   }
 
 
-  adminProductList.innerHTML =
-    products.map(
-      product => {
+  productList.innerHTML =
+    products.map(product => {
 
-        const ready =
-          Number(product.stock) > 0;
+      const stock =
+        Number(product.stock) || 0;
 
+      return `
+        <div class="admin-product-item">
 
-        return `
+          <div class="admin-product-main">
 
-          <div
-            class="admin-product"
-            data-id="${product.id}"
-          >
+            <strong>
+              ${product.name}
+            </strong>
 
-            <div class="admin-product-icon">
-              ${product.icon || "▣"}
+            <span>
+              ${product.category}
+            </span>
+
+            <div class="admin-product-price">
+              ${formatRupiah(product.price)}
             </div>
 
-
-            <div class="admin-product-info">
-
-              <b>
-                ${escapeHTML(product.name)}
-              </b>
-
-              <small>
-                ${escapeHTML(product.category)}
-              </small>
-
-              <small>
-                ${formatPrice(product.price)}
-                •
-                ${ready
-                  ? "Stok " + product.stock
-                  : "HABIS"}
-              </small>
-
-            </div>
-
-
-            <div class="admin-actions">
-
-              <button
-                class="edit-product"
-                data-id="${product.id}"
-              >
-                ✏️ Edit
-              </button>
-
-
-              <button
-                class="delete-product"
-                data-id="${product.id}"
-              >
-                🗑️ Hapus
-              </button>
-
-            </div>
+            <span class="admin-product-stock">
+              Stok: ${stock}
+            </span>
 
           </div>
 
-        `;
+          <div class="admin-product-actions">
 
-      }
-    ).join("");
+            <button
+              type="button"
+              data-edit="${product.id}"
+            >
+              Edit
+            </button>
 
+            <button
+              type="button"
+              class="delete-button"
+              data-delete="${product.id}"
+            >
+              Hapus
+            </button>
 
-  bindProductActions();
+          </div>
+
+        </div>
+      `;
+
+    }).join("");
 
 }
 
 
 /* =========================================
-   AMANKAN TEXT HTML
+   EDIT / DELETE CLICK
 ========================================= */
 
-function escapeHTML(text) {
+productList.addEventListener(
+  "click",
+  event => {
 
-  return String(text)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+    const editButton =
+      event.target.closest(
+        "[data-edit]"
+      );
 
-}
+    const deleteButton =
+      event.target.closest(
+        "[data-delete]"
+      );
+
+
+    if (editButton) {
+
+      editProduct(
+        Number(
+          editButton.dataset.edit
+        )
+      );
+
+    }
+
+
+    if (deleteButton) {
+
+      deleteProduct(
+        Number(
+          deleteButton.dataset.delete
+        )
+      );
+
+    }
+
+  }
+);
 
 
 /* =========================================
-   BUTTON EDIT / DELETE
-========================================= */
-
-function bindProductActions() {
-
-  document
-    .querySelectorAll(".edit-product")
-    .forEach(button => {
-
-      button.addEventListener(
-        "click",
-        function() {
-
-          editProduct(
-            Number(this.dataset.id)
-          );
-
-        }
-      );
-
-    });
-
-
-  document
-    .querySelectorAll(".delete-product")
-    .forEach(button => {
-
-      button.addEventListener(
-        "click",
-        function() {
-
-          deleteProduct(
-            Number(this.dataset.id)
-          );
-
-        }
-      );
-
-    });
-
-}
-
-
-/* =========================================
-   EDIT PRODUK
+   EDIT PRODUCT
 ========================================= */
 
 function editProduct(id) {
 
   const products =
     getProducts();
-
 
   const product =
     products.find(
@@ -495,13 +612,7 @@ function editProduct(id) {
 
 
   if (!product) {
-
-    alert(
-      "Produk tidak ditemukan."
-    );
-
     return;
-
   }
 
 
@@ -509,22 +620,31 @@ function editProduct(id) {
     product.id;
 
   productName.value =
-    product.name;
+    product.name || "";
 
   productCategory.value =
-    product.category;
+    product.category || "";
 
   productPrice.value =
-    product.price;
+    product.price || 0;
 
   productStock.value =
-    product.stock;
+    product.stock || 0;
 
   productSpecs.value =
-    product.specs.join(" | ");
+    Array.isArray(product.specs)
+      ? product.specs.join("\n")
+      : "";
 
   productIcon.value =
     product.icon || "▣";
+
+
+  formTitle.textContent =
+    "Edit Produk";
+
+  cancelEdit.style.display =
+    "block";
 
 
   window.scrollTo({
@@ -536,4 +656,100 @@ function editProduct(id) {
 
 
 /* =========================================
-   H
+   DELETE PRODUCT
+========================================= */
+
+function deleteProduct(id) {
+
+  const products =
+    getProducts();
+
+  const product =
+    products.find(
+      item =>
+        Number(item.id) === id
+    );
+
+
+  if (!product) {
+    return;
+  }
+
+
+  const confirmed =
+    confirm(
+      `Hapus produk "${product.name}"?`
+    );
+
+
+  if (!confirmed) {
+    return;
+  }
+
+
+  const filtered =
+    products.filter(
+      item =>
+        Number(item.id) !== id
+    );
+
+
+  saveProducts(filtered);
+
+  renderProducts();
+  updateStats();
+
+}
+
+
+/* =========================================
+   CANCEL EDIT
+========================================= */
+
+cancelEdit.addEventListener(
+  "click",
+  resetForm
+);
+
+
+/* =========================================
+   STATISTIK
+========================================= */
+
+function updateStats() {
+
+  const products =
+    getProducts();
+
+  const available =
+    products.filter(
+      product =>
+        Number(product.stock) > 0
+    ).length;
+
+  const stock =
+    products.reduce(
+      (total, product) =>
+        total +
+        (Number(product.stock) || 0),
+      0
+    );
+
+
+  totalProducts.textContent =
+    products.length;
+
+  availableProducts.textContent =
+    available;
+
+  totalStock.textContent =
+    stock;
+
+}
+
+
+/* =========================================
+   START
+========================================= */
+
+checkLogin();

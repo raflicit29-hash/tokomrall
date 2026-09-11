@@ -4,268 +4,306 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>MR ALL IN — Computer Store</title>
+  <title>MR ALL IN — Komputer & Sparepart Surabaya</title>
 
-  <meta name="description"
-    content="MR ALL IN Computer Store — PC, VGA, Processor, RAM, SSD, Monitor dan kebutuhan komputer. Gubeng, Surabaya.">
+  <meta
+    name="description"
+    content="MR ALL IN menyediakan komputer, VGA, processor, SSD, RAM, motherboard, monitor dan sparepart komputer di Gubeng, Surabaya."
+  >
 
+  <link rel="icon" href="assets/logo.png">
   <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
 
   <!-- HEADER -->
-  <header class="topbar">
+  <header class="header">
 
-    <a href="index.html" class="brand">
-      <img src="assets/logo.png" alt="MR ALL IN">
-      <div>
-        <strong>MR ALL IN</strong>
-        <span>COMPUTER • GAMING • GADGET • RENTAL</span>
-      </div>
-    </a>
+    <div class="container header-inner">
 
-    <div class="search-box">
-      <input
-        type="search"
-        id="searchInput"
-        placeholder="Cari VGA, Ryzen, SSD, RAM..."
+      <a href="#" class="brand">
+        <img src="assets/logo.png" alt="MR ALL IN">
+        <div>
+          <strong>MR ALL IN</strong>
+          <span>Computer Store</span>
+        </div>
+      </a>
+
+      <nav id="navigation" class="navigation"></nav>
+
+      <a
+        id="whatsappTop"
+        class="header-whatsapp"
+        href="#"
+        target="_blank"
+        rel="noopener"
       >
-      <span>⌕</span>
+        WhatsApp
+      </a>
+
     </div>
-
-    <a
-      id="whatsappTop"
-      class="whatsapp-top"
-      target="_blank"
-      rel="noopener"
-    >
-      <b>WhatsApp</b>
-      <small>0813-3005-3178</small>
-    </a>
-
-    <a href="#location" class="location-top">
-      📍
-      <small>Gubeng</small>
-    </a>
 
   </header>
 
 
-  <!-- NAVIGASI -->
-  <nav class="navigation" id="navigation"></nav>
-
-
+  <!-- HERO -->
   <main>
 
-    <!-- HERO -->
     <section class="hero">
 
-      <div class="hero-content">
+      <div class="container hero-inner">
 
-        <div class="eyebrow">
-          MR ALL IN • GUBENG SURABAYA
-        </div>
+        <div class="hero-content">
 
-        <h1>
-          PERFORMA
-          <br>
-          <em>TANPA BATAS</em>
-        </h1>
+          <span class="hero-badge">
+            ⚡ COMPUTER & SPAREPART
+          </span>
 
-        <p>
-          Hardware pilihan, harga jelas,
-          dan transaksi mudah langsung melalui WhatsApp.
-        </p>
+          <h1>
+            Cari PC & Sparepart?
+            <span>MR ALL IN.</span>
+          </h1>
 
-        <div class="hero-buttons">
+          <p>
+            VGA, Processor, RAM, SSD, Motherboard,
+            Monitor dan berbagai kebutuhan komputer.
+            Cek stok dan harga langsung.
+          </p>
 
-          <a href="#products" class="button primary">
-            Lihat Produk
-          </a>
+          <div class="hero-buttons">
 
-          <a href="#how-to-buy" class="button secondary">
-            Cara Beli
-          </a>
+            <a href="#products" class="primary-button">
+              Lihat Produk
+            </a>
+
+            <a
+              id="whatsappHero"
+              href="#"
+              class="secondary-button"
+              target="_blank"
+              rel="noopener"
+            >
+              Tanya via WhatsApp
+            </a>
+
+          </div>
+
+          <div class="hero-info">
+
+            <div>
+              <strong>📍 Gubeng</strong>
+              <span>Surabaya</span>
+            </div>
+
+            <div>
+              <strong>🤝 COD</strong>
+              <span>Area Surabaya</span>
+            </div>
+
+            <div>
+              <strong>📦 Pickup</strong>
+              <span>Langsung</span>
+            </div>
+
+          </div>
 
         </div>
 
       </div>
 
+    </section>
 
-      <div class="hero-brand">
 
-        <div>
-          MR
-          <br>
-          <strong>ALL IN</strong>
+    <!-- CATEGORIES -->
+    <section class="categories-section">
+
+      <div class="container">
+
+        <div class="section-heading">
+
+          <div>
+            <span class="section-label">
+              KATEGORI
+            </span>
+
+            <h2>
+              Pilih kebutuhanmu
+            </h2>
+          </div>
+
         </div>
+
+        <div
+          id="categories"
+          class="categories-grid"
+        ></div>
 
       </div>
 
     </section>
 
 
-    <!-- KEUNGGULAN -->
-    <section class="trust">
-
-      <div class="trust-item">
-        <span>✓</span>
-        <div>
-          <b>Stok Ter-update</b>
-          <small>Ready / Habis jelas</small>
-        </div>
-      </div>
-
-      <div class="trust-item">
-        <span>◈</span>
-        <div>
-          <b>Harga Jelas</b>
-          <small>Konfirmasi via WhatsApp</small>
-        </div>
-      </div>
-
-      <div class="trust-item">
-        <span>🤝</span>
-        <div>
-          <b>COD</b>
-          <small>Area Surabaya</small>
-        </div>
-      </div>
-
-      <div class="trust-item">
-        <span>⌂</span>
-        <div>
-          <b>Ambil Langsung</b>
-          <small>Gubeng, Surabaya</small>
-        </div>
-      </div>
-
-    </section>
-
-
-    <!-- KATEGORI -->
-    <section class="section">
-
-      <div class="section-header">
-        <h2>Kategori Produk</h2>
-      </div>
-
-      <div
-        id="categories"
-        class="categories"
-      ></div>
-
-    </section>
-
-
-    <!-- PRODUK -->
+    <!-- PRODUCTS -->
     <section
-      class="section"
       id="products"
+      class="products-section"
     >
 
-      <div class="section-header">
+      <div class="container">
 
-        <h2>Produk</h2>
+        <div class="section-heading">
 
-        <span id="productCount">
-          0 produk
-        </span>
+          <div>
+            <span class="section-label">
+              STORE
+            </span>
+
+            <h2>
+              Produk Tersedia
+            </h2>
+
+            <p>
+              Harga dan stok dapat berubah.
+              Hubungi kami untuk memastikan ketersediaan.
+            </p>
+          </div>
+
+          <span
+            id="productCount"
+            class="product-count"
+          >
+            0 produk
+          </span>
+
+        </div>
+
+
+        <!-- SEARCH -->
+        <div class="store-controls">
+
+          <div class="search-box">
+
+            <span>⌕</span>
+
+            <input
+              id="searchInput"
+              type="search"
+              placeholder="Cari produk..."
+              autocomplete="off"
+            >
+
+          </div>
+
+          <div
+            id="filters"
+            class="filters"
+          ></div>
+
+        </div>
+
+
+        <!-- PRODUCT GRID -->
+        <div
+          id="productGrid"
+          class="product-grid"
+        ></div>
 
       </div>
-
-
-      <!-- FILTER -->
-      <div
-        id="filters"
-        class="filters"
-      ></div>
-
-
-      <!-- GRID PRODUK -->
-      <div
-        id="productGrid"
-        class="product-grid"
-      ></div>
 
     </section>
 
 
-    <!-- CARA BELI -->
-    <section
-      class="information"
-      id="how-to-buy"
-    >
+    <!-- TRUST -->
+    <section class="trust-section">
 
-      <article>
+      <div class="container">
 
-        <h3>🛒 Cara Pembelian</h3>
+        <div class="trust-grid">
 
-        <ol>
+          <div class="trust-card">
+            <div class="trust-icon">✓</div>
+            <h3>Stok Jelas</h3>
+            <p>
+              Kamu bisa melihat stok produk
+              sebelum menghubungi kami.
+            </p>
+          </div>
 
-          <li>
-            Pilih produk yang kamu inginkan.
-          </li>
+          <div class="trust-card">
+            <div class="trust-icon">💬</div>
+            <h3>Transaksi WhatsApp</h3>
+            <p>
+              Konsultasi dan transaksi dilakukan
+              langsung melalui WhatsApp.
+            </p>
+          </div>
 
-          <li>
-            Klik tombol
-            <b>Tanya via WhatsApp</b>.
-          </li>
+          <div class="trust-card">
+            <div class="trust-icon">📍</div>
+            <h3>Gubeng, Surabaya</h3>
+            <p>
+              Bisa COD atau ambil langsung
+              sesuai kesepakatan.
+            </p>
+          </div>
 
-          <li>
-            Konfirmasi stok, harga dan kondisi barang.
-          </li>
+        </div>
 
-          <li>
-            Pilih COD atau ambil langsung.
-          </li>
+      </div>
 
-        </ol>
-
-      </article>
-
-
-      <article>
-
-        <h3>🤝 Metode Transaksi</h3>
-
-        <p>
-          <b>COD</b><br>
-          Area Surabaya dan sekitarnya.
-        </p>
-
-        <p>
-          <b>Ambil langsung</b><br>
-          Gubeng, Surabaya.
-        </p>
-
-        <p>
-          Pembayaran mengikuti kesepakatan
-          melalui WhatsApp.
-        </p>
-
-      </article>
+    </section>
 
 
-      <article id="location">
+    <!-- HOW TO BUY -->
+    <section class="info-section">
 
-        <h3>📍 Lokasi</h3>
+      <div class="container">
 
-        <p>
-          <b>Gubeng, Surabaya</b>
-        </p>
+        <div class="section-heading">
 
-        <a
-          href="https://www.google.com/maps/search/?api=1&query=Gubeng%2C%20Surabaya"
-          target="_blank"
-          rel="noopener"
-          class="button primary small"
-        >
-          Buka Google Maps
-        </a>
+          <span class="section-label">
+            CARA BELI
+          </span>
 
-      </article>
+          <h2>
+            Gampang, langsung chat.
+          </h2>
+
+        </div>
+
+        <div class="steps-grid">
+
+          <div class="step-card">
+            <span>01</span>
+            <h3>Pilih Produk</h3>
+            <p>
+              Cari produk dan cek harga
+              serta stok yang tersedia.
+            </p>
+          </div>
+
+          <div class="step-card">
+            <span>02</span>
+            <h3>Chat WhatsApp</h3>
+            <p>
+              Klik tombol WhatsApp untuk
+              menanyakan kondisi dan detail barang.
+            </p>
+          </div>
+
+          <div class="step-card">
+            <span>03</span>
+            <h3>Deal</h3>
+            <p>
+              Tentukan metode transaksi,
+              COD atau ambil langsung.
+            </p>
+          </div>
+
+        </div>
+
+      </div>
 
     </section>
 
@@ -273,31 +311,34 @@
 
 
   <!-- FOOTER -->
-  <footer>
+  <footer class="footer">
 
-    <div class="footer-brand">
+    <div class="container footer-inner">
 
-      <img src="assets/logo.png" alt="MR ALL IN">
+      <div class="footer-brand">
 
-      <div>
-        <b>MR ALL IN</b>
-        <span>
-          Computer • Gaming • Gadget • Rental
-        </span>
+        <img
+          src="assets/logo.png"
+          alt="MR ALL IN"
+        >
+
+        <div>
+          <strong>MR ALL IN</strong>
+          <span>Computer Store</span>
+        </div>
+
+      </div>
+
+      <div class="footer-info">
+        <strong>Gubeng, Surabaya</strong>
+        <span>COD & Pickup</span>
+      </div>
+
+      <div class="footer-copy">
+        © 2026 MR ALL IN
       </div>
 
     </div>
-
-
-    <span>
-      © 2026 MR ALL IN • Gubeng, Surabaya
-    </span>
-
-
-    <!-- ADMIN -->
-    <a href="admin.html">
-      Admin
-    </a>
 
   </footer>
 
@@ -305,12 +346,13 @@
   <!-- FLOATING WHATSAPP -->
   <a
     id="whatsappFloat"
-    class="whatsapp-floating"
+    class="whatsapp-float"
+    href="#"
     target="_blank"
     rel="noopener"
-    aria-label="WhatsApp MR ALL IN"
+    aria-label="Chat WhatsApp"
   >
-    ☘
+    ☎
   </a>
 
 

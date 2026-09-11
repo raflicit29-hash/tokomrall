@@ -1,93 +1,195 @@
-const STORAGE_KEY = "mrallin_products";
 const BUCKET_NAME = "product-images";
 
-let products = [];
-let editingId = null;
+let currentUser = null;
+let currentProducts = [];
+let editingProductId = null;
+let currentImagePath = null;
 let selectedImageFile = null;
 
-const categoryList = [
-  "VGA",
-  "Processor",
-  "Motherboard",
-  "RAM",
-  "SSD",
-  "HDD",
-  "PSU",
-  "Casing",
-  "Monitor",
-  "Aksesoris",
-  "Paket PC"
-];
+
+// ===============================
+// ELEMENTS
+// ===============================
+
+const adminLogin = document.getElementById("adminLogin");
+const adminLoginForm = document.getElementById("adminLoginForm");
+const adminEmail = document.getElementById("adminEmail");
+const adminPassword = document.getElementById("adminPassword");
+const loginButton = document.getElementById("loginButton");
+
+const forgotPasswordLink =
+  document.getElementById("forgotPasswordLink");
+
+const adminDashboard =
+  document.getElementById("adminDashboard");
+
+const logoutButton =
+  document.getElementById("logoutButton");
+
+const dashboardMessage =
+  document.getElementById("dashboardMessage");
+
+const statProducts =
+  document.getElementById("statProducts");
+
+const statStock =
+  document.getElementById("statStock");
+
+const statActive =
+  document.getElementById("statActive");
+
+const productForm =
+  document.getElementById("productForm");
+
+const productId =
+  document.getElementById("productId");
+
+const productImage =
+  document.getElementById("productImage");
+
+const imagePreview =
+  document.getElementById("imagePreview");
+
+const removeImageButton =
+  document.getElementById("removeImageButton");
+
+const productName =
+  document.getElementById("productName");
+
+const productCategory =
+  document.getElementById("productCategory");
+
+const productPrice =
+  document.getElementById("productPrice");
+
+const productStock =
+  document.getElementById("productStock");
+
+const productSpecs =
+  document.getElementById("productSpecs");
+
+const saveProductButton =
+  document.getElementById("saveProductButton");
+
+const cancelEditButton =
+  document.getElementById("cancelEditButton");
+
+const adminProductList =
+  document.getElementById("adminProductList");
+
+const formTitle =
+  document.getElementById("formTitle");
+
+
+// ===============================
+// MESSAGE
+// ===============================
+
+function showMessage(message, type = "info") {
+
+  const element =
+    adminDashboard.style.display !== "none"
+      ? dashboardMessage
+      : document.getElementById("adminMessage");
+
+  if (!element) return;
+
+  element.textContent = message;
+  element.style.display = "block";
+
+  element.classList.remove(
+    "success",
+    "error",
+    "info"
+  );
+
+  element.classList.add(type);
+
+  setTimeout(() => {
+    element.style.display = "none";
+  }, 5000);
+}
+
+
+// ===============================
+// FORMAT RUPIAH
+// ===============================
 
 function formatRupiah(value) {
   return new Intl.NumberFormat("id-ID", {
     style: "currency",
     currency: "IDR",
     maximumFractionDigits: 0
-  }).format(Number(value) || 0);
+  }).format(value || 0);
 }
 
-function escapeHTML(value) {
-  return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
 
-function showLogin() {
-  const login = document.querySelector("#adminLogin");
-  const dashboard = document.querySelector("#adminDashboard");
+// ===============================
+// CHECK ADMIN
+// ===============================
 
-  if (login) login.style.display = "";
-  if (dashboard) dashboard.style.display = "none";
-}
+async function checkAdmin(userId) {
 
-function showDashboard() {
-  const login = document.querySelector("#adminLogin");
-  const dashboard = document.querySelector("#adminDashboard");
+  const { data, error } = await supabaseClient
+    .from("admins")
+    .select("user_id")
+    .eq("user_id", userId)
+    .maybeSingle();
 
-  if (login) login.style.display = "none";
-  if (dashboard) dashboard.style.display = "";
-}
-
-function showMessage(message, type = "success") {
-  const box = document.querySelector("#adminMessage");
-
-  if (!box) {
-    alert(message);
-    return;
-  }
-
-  box.textContent = message;
-  box.className = `admin-message ${type}`;
-  box.style.display = "block";
-
-  setTimeout(() => {
-    box.style.display = "none";
-  }, 4000);
-}
-
-async function checkAdmin() {
-  const {
-    data: { user },
-    error
-  } = await supabaseClient.auth.getUser();
-
-  if (error || !user) {
-    showLogin();
+  if (error) {
+    console.error("Admin check error:", error);
     return false;
   }
 
-  const { data: admin, error: adminError } =
-    await supabaseClient
-      .from("admins")
-      .select("user_id")
-      .eq("user_id", user.id)
-      .maybeSingle();
+  return !!data;
+}
 
-  if (adminError || !admin) {
+
+// ===============================
+// SHOW LOGIN
+// ===============================
+
+function showLogin() {
+
+  adminLogin.style.display = "";
+  adminDashboard.style.display = "none";
+
+  currentUser = null;
+}
+
+
+// ===============================
+// SHOW DASHBOARD
+// ===============================
+
+function showDashboard() {
+
+  adminLogin.style.display = "none";
+  adminDashboard.style.display = "";
+
+}
+
+
+// ===============================
+// LOAD SESSION
+// ===============================
+
+async function loadSession() {
+
+  const {
+    data: { session }
+  } = await supabaseClient.auth.getSession();
+
+  if (!session) {
+    showLogin();
+    return;
+  }
+
+  const isAdmin =
+    await checkAdmin(session.user.id);
+
+  if (!isAdmin) {
+
     await supabaseClient.auth.signOut();
 
     showLogin();
@@ -97,73 +199,235 @@ async function checkAdmin() {
       "error"
     );
 
-    return false;
+    return;
   }
+
+  currentUser = session.user;
 
   showDashboard();
 
-  return true;
+  await loadProducts();
+  populateCategories();
 }
 
-async function loginAdmin() {
-  const email =
-    document.querySelector("#adminEmail")?.value.trim();
 
-  const password =
-    document.querySelector("#adminPassword")?.value;
+// ===============================
+// LOGIN
+// ===============================
 
-  if (!email || !password) {
-    showMessage(
-      "Email dan password wajib diisi.",
-      "error"
-    );
-    return;
+adminLoginForm.addEventListener(
+  "submit",
+  async (event) => {
+
+    event.preventDefault();
+
+    const email =
+      adminEmail.value.trim();
+
+    const password =
+      adminPassword.value;
+
+    if (!email || !password) {
+      showMessage(
+        "Email dan password wajib diisi.",
+        "error"
+      );
+      return;
+    }
+
+    loginButton.disabled = true;
+    loginButton.textContent = "Login...";
+
+    const { data, error } =
+      await supabaseClient.auth.signInWithPassword({
+        email,
+        password
+      });
+
+    if (error) {
+
+      console.error("Login error:", error);
+
+      showMessage(
+        "Login gagal: " + error.message,
+        "error"
+      );
+
+      loginButton.disabled = false;
+      loginButton.textContent = "Login";
+
+      return;
+    }
+
+    const isAdmin =
+      await checkAdmin(data.user.id);
+
+    if (!isAdmin) {
+
+      await supabaseClient.auth.signOut();
+
+      showMessage(
+        "Akun ini bukan admin.",
+        "error"
+      );
+
+      loginButton.disabled = false;
+      loginButton.textContent = "Login";
+
+      return;
+    }
+
+    currentUser = data.user;
+
+    adminPassword.value = "";
+
+    loginButton.disabled = false;
+    loginButton.textContent = "Login";
+
+    showDashboard();
+
+    populateCategories();
+
+    await loadProducts();
   }
+);
 
-  const button =
-    document.querySelector("#loginButton");
 
-  if (button) {
-    button.disabled = true;
-    button.textContent = "Login...";
-  }
+// ===============================
+// FORGOT PASSWORD
+// ===============================
 
-  const { data, error } =
-    await supabaseClient.auth.signInWithPassword({
-      email,
-      password
-    });
+if (forgotPasswordLink) {
 
-  if (button) {
-    button.disabled = false;
-    button.textContent = "Login";
-  }
+  forgotPasswordLink.addEventListener(
+    "click",
+    async (event) => {
 
-  if (error) {
-    showMessage(
-      "Login gagal: " + error.message,
-      "error"
-    );
-    return;
-  }
+      event.preventDefault();
 
-  const isAdmin = await checkAdmin();
+      const email =
+        adminEmail.value.trim();
 
-  if (!isAdmin && data?.user) {
+      if (!email) {
+
+        showMessage(
+          "Masukkan email admin terlebih dahulu.",
+          "error"
+        );
+
+        adminEmail.focus();
+
+        return;
+      }
+
+      forgotPasswordLink.style.pointerEvents =
+        "none";
+
+      forgotPasswordLink.textContent =
+        "Mengirim email...";
+
+      const resetUrl =
+        window.location.origin +
+        window.location.pathname
+          .replace("admin.html", "reset-password.html");
+
+      const { error } =
+        await supabaseClient.auth
+          .resetPasswordForEmail(email, {
+            redirectTo: resetUrl
+          });
+
+      if (error) {
+
+        console.error(
+          "Reset password error:",
+          error
+        );
+
+        showMessage(
+          "Gagal mengirim reset password: " +
+          error.message,
+          "error"
+        );
+
+      } else {
+
+        showMessage(
+          "Link reset password sudah dikirim ke email tersebut. Cek Inbox/Spam.",
+          "success"
+        );
+      }
+
+      forgotPasswordLink.style.pointerEvents =
+        "";
+
+      forgotPasswordLink.textContent =
+        "Lupa Password?";
+    }
+  );
+}
+
+
+// ===============================
+// LOGOUT
+// ===============================
+
+logoutButton.addEventListener(
+  "click",
+  async () => {
+
     await supabaseClient.auth.signOut();
+
+    showLogin();
+
+    window.location.reload();
   }
+);
+
+
+// ===============================
+// CATEGORIES
+// ===============================
+
+function populateCategories() {
+
+  if (!productCategory) return;
+
+  productCategory.innerHTML = "";
+
+  const categories =
+    Array.isArray(PRODUCT_CATEGORIES)
+      ? PRODUCT_CATEGORIES
+      : [];
+
+  categories.forEach(category => {
+
+    const option =
+      document.createElement("option");
+
+    option.value = category;
+    option.textContent = category;
+
+    productCategory.appendChild(option);
+  });
 }
 
-async function logoutAdmin() {
-  await supabaseClient.auth.signOut();
 
-  editingId = null;
-  selectedImageFile = null;
-
-  showLogin();
-}
+// ===============================
+// LOAD PRODUCTS
+// ===============================
 
 async function loadProducts() {
+
+  if (!adminProductList) return;
+
+  adminProductList.innerHTML = `
+    <div class="loading-state">
+      <div class="loading-spinner"></div>
+      <p>Memuat produk...</p>
+    </div>
+  `;
+
   const { data, error } =
     await supabaseClient
       .from("products")
@@ -173,111 +437,123 @@ async function loadProducts() {
       });
 
   if (error) {
-    console.error(error);
+
+    console.error(
+      "Load products error:",
+      error
+    );
+
+    adminProductList.innerHTML = `
+      <div class="loading-state">
+        <p>Gagal memuat produk.</p>
+      </div>
+    `;
 
     showMessage(
-      "Gagal mengambil produk: " + error.message,
+      "Gagal memuat produk: " +
+      error.message,
       "error"
     );
 
     return;
   }
 
-  products = Array.isArray(data)
-    ? data
-    : [];
+  currentProducts =
+    Array.isArray(data)
+      ? data
+      : [];
 
-  renderStats();
-  renderProductList();
+  updateStats();
+  renderAdminProducts();
 }
 
-function renderStats() {
-  const totalProducts = products.length;
 
-  const activeProducts =
-    products.filter(product => product.is_active).length;
+// ===============================
+// STATS
+// ===============================
+
+function updateStats() {
+
+  const totalProducts =
+    currentProducts.length;
 
   const totalStock =
-    products.reduce(
-      (sum, product) =>
-        sum + (Number(product.stock) || 0),
+    currentProducts.reduce(
+      (total, product) =>
+        total + Number(product.stock || 0),
       0
     );
 
-  const statProducts =
-    document.querySelector("#statProducts");
+  const activeProducts =
+    currentProducts.filter(
+      product => product.is_active !== false
+    ).length;
 
-  const statStock =
-    document.querySelector("#statStock");
+  statProducts.textContent =
+    totalProducts;
 
-  const statActive =
-    document.querySelector("#statActive");
+  statStock.textContent =
+    totalStock;
 
-  if (statProducts) {
-    statProducts.textContent = totalProducts;
-  }
-
-  if (statStock) {
-    statStock.textContent = totalStock;
-  }
-
-  if (statActive) {
-    statActive.textContent = activeProducts;
-  }
+  statActive.textContent =
+    activeProducts;
 }
 
-function renderProductList() {
-  const container =
-    document.querySelector("#adminProductList");
 
-  if (!container) return;
+// ===============================
+// RENDER ADMIN PRODUCTS
+// ===============================
 
-  if (!products.length) {
-    container.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">📦</div>
-        <h3>Belum ada produk</h3>
-        <p>Tambahkan produk pertama kamu.</p>
+function renderAdminProducts() {
+
+  if (!currentProducts.length) {
+
+    adminProductList.innerHTML = `
+      <div class="loading-state">
+        <p>Belum ada produk.</p>
       </div>
     `;
 
     return;
   }
 
-  container.innerHTML = products
-    .map(product => {
-      const stock =
-        Number(product.stock) || 0;
+  adminProductList.innerHTML =
+    currentProducts.map(product => {
 
-      const image = product.image_url
-        ? `
-          <img
-            src="${escapeHTML(product.image_url)}"
-            alt="${escapeHTML(product.name)}"
-            class="admin-product-image"
-          >
-        `
-        : `
-          <div class="admin-product-placeholder">
-            ${escapeHTML(product.icon || "▣")}
-          </div>
-        `;
+      const specs =
+        Array.isArray(product.specs)
+          ? product.specs
+          : [];
+
+      const imageHtml =
+        product.image_url
+          ? `
+            <img
+              src="${escapeHtml(product.image_url)}"
+              alt="${escapeHtml(product.name)}"
+            >
+          `
+          : `
+            <div class="admin-product-icon">
+              ${escapeHtml(product.icon || "▣")}
+            </div>
+          `;
 
       return `
-        <div class="admin-product-item">
+        <article class="admin-product-card">
 
-          <div class="admin-product-thumb">
-            ${image}
+          <div class="admin-product-image">
+            ${imageHtml}
           </div>
 
           <div class="admin-product-info">
 
             <div class="admin-product-category">
-              ${escapeHTML(product.category)}
+              ${escapeHtml(product.category || "")}
             </div>
 
             <h3>
-              ${escapeHTML(product.name)}
+              ${escapeHtml(product.name || "")}
             </h3>
 
             <div class="admin-product-price">
@@ -285,290 +561,189 @@ function renderProductList() {
             </div>
 
             <div class="admin-product-stock">
-              Stok: <strong>${stock}</strong>
+              Stok: ${Number(product.stock || 0)}
             </div>
+
+            ${
+              specs.length
+                ? `
+                  <ul class="admin-product-specs">
+                    ${specs.map(spec => `
+                      <li>
+                        ${escapeHtml(spec)}
+                      </li>
+                    `).join("")}
+                  </ul>
+                `
+                : ""
+            }
 
           </div>
 
           <div class="admin-product-actions">
 
             <button
-              class="btn-edit"
-              data-edit-id="${product.id}"
+              type="button"
+              class="btn-secondary"
+              onclick="editProduct(${product.id})"
             >
-              Edit
+              ✏️ Edit
             </button>
 
             <button
-              class="btn-delete"
-              data-delete-id="${product.id}"
+              type="button"
+              class="btn-danger"
+              onclick="deleteProduct(${product.id})"
             >
-              Hapus
+              🗑️ Hapus
             </button>
 
           </div>
 
-        </div>
+        </article>
       `;
-    })
-    .join("");
-
-  container
-    .querySelectorAll("[data-edit-id]")
-    .forEach(button => {
-      button.addEventListener("click", () => {
-        editProduct(button.dataset.editId);
-      });
-    });
-
-  container
-    .querySelectorAll("[data-delete-id]")
-    .forEach(button => {
-      button.addEventListener("click", () => {
-        deleteProduct(button.dataset.deleteId);
-      });
-    });
+    }).join("");
 }
 
-function fillCategories() {
-  const select =
-    document.querySelector("#productCategory");
 
-  if (!select) return;
+// ===============================
+// ESCAPE HTML
+// ===============================
 
-  select.innerHTML = categoryList
-    .map(category => `
-      <option value="${escapeHTML(category)}">
-        ${escapeHTML(category)}
-      </option>
-    `)
-    .join("");
+function escapeHtml(value) {
+
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
-function resetForm() {
-  editingId = null;
-  selectedImageFile = null;
 
-  const form =
-    document.querySelector("#productForm");
+// ===============================
+// IMAGE PREVIEW
+// ===============================
 
-  if (form) form.reset();
+productImage.addEventListener(
+  "change",
+  () => {
 
-  const idInput =
-    document.querySelector("#productId");
+    const file =
+      productImage.files?.[0];
 
-  if (idInput) {
-    idInput.value = "";
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+
+      showMessage(
+        "Ukuran foto maksimal 5 MB.",
+        "error"
+      );
+
+      productImage.value = "";
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+
+      showMessage(
+        "File harus berupa gambar.",
+        "error"
+      );
+
+      productImage.value = "";
+      return;
+    }
+
+    selectedImageFile = file;
+
+    const reader =
+      new FileReader();
+
+    reader.onload = event => {
+
+      imagePreview.innerHTML = `
+        <img
+          src="${event.target.result}"
+          alt="Preview"
+        >
+      `;
+
+      removeImageButton.style.display =
+        "inline-flex";
+    };
+
+    reader.readAsDataURL(file);
   }
+);
 
-  const title =
-    document.querySelector("#formTitle");
 
-  if (title) {
-    title.textContent = "Tambah Produk";
-  }
+// ===============================
+// REMOVE IMAGE
+// ===============================
 
-  const submit =
-    document.querySelector("#saveProductButton");
+removeImageButton.addEventListener(
+  "click",
+  () => {
 
-  if (submit) {
-    submit.textContent = "Tambah Produk";
-  }
+    selectedImageFile = null;
+    currentImagePath = null;
 
-  const imageInput =
-    document.querySelector("#productImage");
+    productImage.value = "";
 
-  if (imageInput) {
-    imageInput.value = "";
-  }
-
-  const preview =
-    document.querySelector("#imagePreview");
-
-  if (preview) {
-    preview.innerHTML = `
+    imagePreview.innerHTML = `
       <div class="image-preview-empty">
         📷<br>
         Belum ada foto
       </div>
     `;
+
+    removeImageButton.style.display =
+      "none";
   }
+);
 
-  const removeImage =
-    document.querySelector("#removeImageButton");
 
-  if (removeImage) {
-    removeImage.style.display = "none";
-  }
-}
+// ===============================
+// UPLOAD IMAGE
+// ===============================
 
-function editProduct(id) {
-  const product =
-    products.find(item => String(item.id) === String(id));
+async function uploadProductImage(
+  file,
+  productDatabaseId
+) {
 
-  if (!product) return;
+  if (!file) return null;
 
-  editingId = product.id;
-  selectedImageFile = null;
-
-  const name =
-    document.querySelector("#productName");
-
-  const category =
-    document.querySelector("#productCategory");
-
-  const price =
-    document.querySelector("#productPrice");
-
-  const stock =
-    document.querySelector("#productStock");
-
-  const specs =
-    document.querySelector("#productSpecs");
-
-  if (name) name.value = product.name || "";
-  if (category) category.value = product.category || "";
-  if (price) price.value = product.price || 0;
-  if (stock) stock.value = product.stock || 0;
-
-  if (specs) {
-    specs.value = Array.isArray(product.specs)
-      ? product.specs.join("\n")
-      : "";
-  }
-
-  const title =
-    document.querySelector("#formTitle");
-
-  if (title) {
-    title.textContent = "Edit Produk";
-  }
-
-  const submit =
-    document.querySelector("#saveProductButton");
-
-  if (submit) {
-    submit.textContent = "Simpan Perubahan";
-  }
-
-  const preview =
-    document.querySelector("#imagePreview");
-
-  if (preview) {
-    preview.innerHTML = product.image_url
-      ? `
-        <img
-          src="${escapeHTML(product.image_url)}"
-          alt="Preview"
-        >
-      `
-      : `
-        <div class="image-preview-empty">
-          📷<br>
-          Belum ada foto
-        </div>
-      `;
-  }
-
-  const removeImage =
-    document.querySelector("#removeImageButton");
-
-  if (removeImage) {
-    removeImage.style.display =
-      product.image_url
-        ? "inline-flex"
-        : "none";
-  }
-
-  document
-    .querySelector("#productForm")
-    ?.scrollIntoView({
-      behavior: "smooth",
-      block: "start"
-    });
-}
-
-function handleImagePreview(event) {
-  const file =
-    event.target.files?.[0];
-
-  if (!file) {
-    selectedImageFile = null;
-    return;
-  }
-
-  if (!file.type.startsWith("image/")) {
-    showMessage(
-      "File harus berupa gambar.",
-      "error"
-    );
-
-    event.target.value = "";
-
-    return;
-  }
-
-  if (file.size > 5 * 1024 * 1024) {
-    showMessage(
-      "Ukuran foto maksimal 5 MB.",
-      "error"
-    );
-
-    event.target.value = "";
-
-    return;
-  }
-
-  selectedImageFile = file;
-
-  const reader =
-    new FileReader();
-
-  reader.onload = () => {
-    const preview =
-      document.querySelector("#imagePreview");
-
-    if (preview) {
-      preview.innerHTML = `
-        <img
-          src="${reader.result}"
-          alt="Preview foto"
-        >
-      `;
-    }
-  };
-
-  reader.readAsDataURL(file);
-}
-
-async function uploadImage(file) {
   const extension =
-    file.name.split(".").pop()?.toLowerCase() ||
-    "jpg";
-
-  const fileName =
-    `${crypto.randomUUID()}.${extension}`;
+    file.name
+      .split(".")
+      .pop()
+      .toLowerCase();
 
   const filePath =
-    `products/${fileName}`;
+    `${productDatabaseId}-${Date.now()}.${extension}`;
 
-  const { error } =
+  const { error: uploadError } =
     await supabaseClient.storage
       .from(BUCKET_NAME)
       .upload(filePath, file, {
         cacheControl: "3600",
-        upsert: false
+        upsert: false,
+        contentType: file.type
       });
 
-  if (error) {
-    throw error;
+  if (uploadError) {
+    throw uploadError;
   }
 
   const {
     data: publicData
-  } = supabaseClient.storage
-    .from(BUCKET_NAME)
-    .getPublicUrl(filePath);
+  } =
+    supabaseClient.storage
+      .from(BUCKET_NAME)
+      .getPublicUrl(filePath);
 
   return {
     path: filePath,
@@ -576,7 +751,13 @@ async function uploadImage(file) {
   };
 }
 
-async function deleteImage(path) {
+
+// ===============================
+// DELETE STORAGE IMAGE
+// ===============================
+
+async function deleteStorageImage(path) {
+
   if (!path) return;
 
   const { error } =
@@ -586,288 +767,371 @@ async function deleteImage(path) {
 
   if (error) {
     console.warn(
-      "Gagal menghapus foto:",
+      "Gagal menghapus foto storage:",
       error
     );
   }
 }
 
-async function saveProduct(event) {
-  event.preventDefault();
 
-  const name =
-    document.querySelector("#productName")
-      ?.value.trim();
+// ===============================
+// ADD / EDIT PRODUCT
+// ===============================
 
-  const category =
-    document.querySelector("#productCategory")
-      ?.value;
+productForm.addEventListener(
+  "submit",
+  async event => {
 
-  const price =
-    Number(
-      document.querySelector("#productPrice")
-        ?.value
-    );
+    event.preventDefault();
 
-  const stock =
-    Number(
-      document.querySelector("#productStock")
-        ?.value
-    );
+    const name =
+      productName.value.trim();
 
-  const specsText =
-    document.querySelector("#productSpecs")
-      ?.value || "";
+    const category =
+      productCategory.value;
 
-  if (!name) {
-    showMessage(
-      "Nama produk wajib diisi.",
-      "error"
-    );
-    return;
-  }
+    const price =
+      Number(productPrice.value);
 
-  if (!category) {
-    showMessage(
-      "Kategori wajib dipilih.",
-      "error"
-    );
-    return;
-  }
+    const stock =
+      Number(productStock.value);
 
-  if (!Number.isFinite(price) || price < 0) {
-    showMessage(
-      "Harga tidak valid.",
-      "error"
-    );
-    return;
-  }
+    const specs =
+      productSpecs.value
+        .split("\n")
+        .map(item => item.trim())
+        .filter(Boolean);
 
-  if (!Number.isInteger(stock) || stock < 0) {
-    showMessage(
-      "Stok tidak valid.",
-      "error"
-    );
-    return;
-  }
+    if (!name) {
+      showMessage(
+        "Nama produk wajib diisi.",
+        "error"
+      );
+      return;
+    }
 
-  const specs =
-    specsText
-      .split("\n")
-      .map(item => item.trim())
-      .filter(Boolean);
+    if (!category) {
+      showMessage(
+        "Kategori wajib dipilih.",
+        "error"
+      );
+      return;
+    }
 
-  const button =
-    document.querySelector("#saveProductButton");
+    if (!Number.isFinite(price) || price < 0) {
+      showMessage(
+        "Harga tidak valid.",
+        "error"
+      );
+      return;
+    }
 
-  if (button) {
-    button.disabled = true;
-    button.textContent =
-      editingId
+    if (!Number.isInteger(stock) || stock < 0) {
+      showMessage(
+        "Stok tidak valid.",
+        "error"
+      );
+      return;
+    }
+
+    saveProductButton.disabled = true;
+    saveProductButton.textContent =
+      editingProductId
         ? "Menyimpan..."
         : "Menambahkan...";
-  }
 
-  try {
-    let imageUrl = null;
-    let imagePath = null;
+    try {
 
-    const oldProduct =
-      editingId
-        ? products.find(
-            item =>
-              String(item.id) ===
-              String(editingId)
-          )
-        : null;
+      if (editingProductId) {
 
-    if (selectedImageFile) {
-      const uploaded =
-        await uploadImage(
-          selectedImageFile
-        );
+        await updateExistingProduct({
+          name,
+          category,
+          price,
+          stock,
+          specs
+        });
 
-      imageUrl = uploaded.url;
-      imagePath = uploaded.path;
-    }
+      } else {
 
-    if (editingId) {
-      const updateData = {
-        name,
-        category,
-        price,
-        stock,
-        specs,
-        updated_at:
-          new Date().toISOString()
-      };
+        await createNewProduct({
+          name,
+          category,
+          price,
+          stock,
+          specs
+        });
 
-      if (selectedImageFile) {
-        updateData.image_url =
-          imageUrl;
-
-        updateData.image_path =
-          imagePath;
       }
 
-      const { error } =
-        await supabaseClient
-          .from("products")
-          .update(updateData)
-          .eq("id", editingId);
+      resetProductForm();
 
-      if (error) {
-        if (imagePath) {
-          await deleteImage(imagePath);
-        }
-
-        throw error;
-      }
-
-      if (
-        selectedImageFile &&
-        oldProduct?.image_path
-      ) {
-        await deleteImage(
-          oldProduct.image_path
-        );
-      }
+      await loadProducts();
 
       showMessage(
-        "Produk berhasil diperbarui."
+        editingProductId
+          ? "Produk berhasil diperbarui."
+          : "Produk berhasil ditambahkan.",
+        "success"
       );
 
-    } else {
-      const insertData = {
-        name,
-        category,
-        price,
-        stock,
-        specs,
+    } catch (error) {
+
+      console.error(
+        "Save product error:",
+        error
+      );
+
+      showMessage(
+        "Gagal menyimpan produk: " +
+        error.message,
+        "error"
+      );
+
+    } finally {
+
+      saveProductButton.disabled = false;
+
+      saveProductButton.textContent =
+        "Tambah Produk";
+    }
+  }
+);
+
+
+// ===============================
+// CREATE PRODUCT
+// ===============================
+
+async function createNewProduct(data) {
+
+  const { data: inserted, error } =
+    await supabaseClient
+      .from("products")
+      .insert({
+        category: data.category,
+        name: data.name,
+        price: data.price,
+        stock: data.stock,
+        specs: data.specs,
         icon: "▣",
         is_active: true
-      };
+      })
+      .select()
+      .single();
 
-      if (selectedImageFile) {
-        insertData.image_url =
-          imageUrl;
+  if (error) {
+    throw error;
+  }
 
-        insertData.image_path =
-          imagePath;
-      }
+  if (selectedImageFile) {
 
-      const { error } =
-        await supabaseClient
-          .from("products")
-          .insert(insertData);
-
-      if (error) {
-        if (imagePath) {
-          await deleteImage(imagePath);
-        }
-
-        throw error;
-      }
-
-      showMessage(
-        "Produk berhasil ditambahkan."
+    const uploaded =
+      await uploadProductImage(
+        selectedImageFile,
+        inserted.id
       );
-    }
 
-    resetForm();
+    const { error: updateError } =
+      await supabaseClient
+        .from("products")
+        .update({
+          image_url: uploaded.url,
+          image_path: uploaded.path
+        })
+        .eq("id", inserted.id);
 
-    await loadProducts();
+    if (updateError) {
 
-  } catch (error) {
-    console.error(error);
+      await deleteStorageImage(
+        uploaded.path
+      );
 
-    showMessage(
-      "Gagal menyimpan produk: " +
-        error.message,
-      "error"
-    );
-
-  } finally {
-    if (button) {
-      button.disabled = false;
-
-      button.textContent =
-        editingId
-          ? "Simpan Perubahan"
-          : "Tambah Produk";
+      throw updateError;
     }
   }
 }
 
-async function removeCurrentImage() {
-  if (!editingId) return;
+
+// ===============================
+// UPDATE PRODUCT
+// ===============================
+
+async function updateExistingProduct(data) {
 
   const product =
-    products.find(
+    currentProducts.find(
       item =>
-        String(item.id) ===
-        String(editingId)
+        Number(item.id) ===
+        Number(editingProductId)
     );
 
-  if (!product) return;
-
-  if (!product.image_path) {
-    showMessage(
-      "Produk ini belum mempunyai foto.",
-      "error"
-    );
-    return;
+  if (!product) {
+    throw new Error("Produk tidak ditemukan.");
   }
-
-  const confirmed =
-    confirm(
-      "Hapus foto produk ini?"
-    );
-
-  if (!confirmed) return;
-
-  await deleteImage(
-    product.image_path
-  );
 
   const { error } =
     await supabaseClient
       .from("products")
       .update({
-        image_url: null,
-        image_path: null,
-        updated_at:
-          new Date().toISOString()
+        category: data.category,
+        name: data.name,
+        price: data.price,
+        stock: data.stock,
+        specs: data.specs,
+        updated_at: new Date().toISOString()
       })
-      .eq("id", product.id);
+      .eq("id", editingProductId);
 
   if (error) {
+    throw error;
+  }
+
+  if (selectedImageFile) {
+
+    const uploaded =
+      await uploadProductImage(
+        selectedImageFile,
+        editingProductId
+      );
+
+    const { error: imageUpdateError } =
+      await supabaseClient
+        .from("products")
+        .update({
+          image_url: uploaded.url,
+          image_path: uploaded.path,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", editingProductId);
+
+    if (imageUpdateError) {
+
+      await deleteStorageImage(
+        uploaded.path
+      );
+
+      throw imageUpdateError;
+    }
+
+    if (product.image_path) {
+      await deleteStorageImage(
+        product.image_path
+      );
+    }
+  }
+}
+
+
+// ===============================
+// EDIT PRODUCT
+// ===============================
+
+window.editProduct = function(id) {
+
+  const product =
+    currentProducts.find(
+      item =>
+        Number(item.id) === Number(id)
+    );
+
+  if (!product) {
     showMessage(
-      "Gagal menghapus foto: " +
-        error.message,
+      "Produk tidak ditemukan.",
       "error"
     );
     return;
   }
 
-  showMessage(
-    "Foto berhasil dihapus."
-  );
+  editingProductId = product.id;
 
-  await loadProducts();
+  productId.value =
+    product.id;
 
-  editProduct(product.id);
-}
+  productName.value =
+    product.name || "";
 
-async function deleteProduct(id) {
+  productCategory.value =
+    product.category || "";
+
+  productPrice.value =
+    product.price || 0;
+
+  productStock.value =
+    product.stock || 0;
+
+  productSpecs.value =
+    Array.isArray(product.specs)
+      ? product.specs.join("\n")
+      : "";
+
+  currentImagePath =
+    product.image_path || null;
+
+  selectedImageFile = null;
+
+  productImage.value = "";
+
+  if (product.image_url) {
+
+    imagePreview.innerHTML = `
+      <img
+        src="${escapeHtml(product.image_url)}"
+        alt="${escapeHtml(product.name)}"
+      >
+    `;
+
+    removeImageButton.style.display =
+      "inline-flex";
+
+  } else {
+
+    imagePreview.innerHTML = `
+      <div class="image-preview-empty">
+        📷<br>
+        Belum ada foto
+      </div>
+    `;
+
+    removeImageButton.style.display =
+      "none";
+  }
+
+  formTitle.textContent =
+    "Edit Produk";
+
+  saveProductButton.textContent =
+    "Simpan Perubahan";
+
+  cancelEditButton.textContent =
+    "Batal Edit";
+
+  productForm.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
+};
+
+
+// ===============================
+// DELETE PRODUCT
+// ===============================
+
+window.deleteProduct = async function(id) {
+
   const product =
-    products.find(
+    currentProducts.find(
       item =>
-        String(item.id) ===
-        String(id)
+        Number(item.id) === Number(id)
     );
 
-  if (!product) return;
+  if (!product) {
+    showMessage(
+      "Produk tidak ditemukan.",
+      "error"
+    );
+    return;
+  }
 
   const confirmed =
     confirm(
@@ -877,8 +1141,9 @@ async function deleteProduct(id) {
   if (!confirmed) return;
 
   try {
+
     if (product.image_path) {
-      await deleteImage(
+      await deleteStorageImage(
         product.image_path
       );
     }
@@ -887,119 +1152,144 @@ async function deleteProduct(id) {
       await supabaseClient
         .from("products")
         .delete()
-        .eq("id", product.id);
+        .eq("id", id);
 
     if (error) {
       throw error;
     }
 
-    if (
-      editingId &&
-      String(editingId) ===
-        String(product.id)
-    ) {
-      resetForm();
-    }
-
-    showMessage(
-      "Produk berhasil dihapus."
-    );
-
     await loadProducts();
 
+    showMessage(
+      "Produk berhasil dihapus.",
+      "success"
+    );
+
   } catch (error) {
-    console.error(error);
+
+    console.error(
+      "Delete product error:",
+      error
+    );
 
     showMessage(
       "Gagal menghapus produk: " +
-        error.message,
+      error.message,
       "error"
     );
   }
+};
+
+
+// ===============================
+// RESET FORM
+// ===============================
+
+function resetProductForm() {
+
+  editingProductId = null;
+  currentImagePath = null;
+  selectedImageFile = null;
+
+  productId.value = "";
+
+  productName.value = "";
+
+  if (productCategory.options.length) {
+    productCategory.selectedIndex = 0;
+  }
+
+  productPrice.value = "";
+
+  productStock.value = "";
+
+  productSpecs.value = "";
+
+  productImage.value = "";
+
+  imagePreview.innerHTML = `
+    <div class="image-preview-empty">
+      📷<br>
+      Belum ada foto
+    </div>
+  `;
+
+  removeImageButton.style.display =
+    "none";
+
+  formTitle.textContent =
+    "Tambah Produk";
+
+  saveProductButton.textContent =
+    "Tambah Produk";
+
+  cancelEditButton.textContent =
+    "Reset";
 }
 
-function setupEvents() {
-  const loginForm =
-    document.querySelector("#adminLoginForm");
 
-  if (loginForm) {
-    loginForm.addEventListener(
-      "submit",
-      event => {
-        event.preventDefault();
-        loginAdmin();
+cancelEditButton.addEventListener(
+  "click",
+  () => {
+    resetProductForm();
+  }
+);
+
+
+// ===============================
+// AUTH STATE
+// ===============================
+
+supabaseClient.auth.onAuthStateChange(
+  async (event, session) => {
+
+    if (event === "SIGNED_OUT") {
+      showLogin();
+      return;
+    }
+
+    if (
+      event === "SIGNED_IN" ||
+      event === "INITIAL_SESSION"
+    ) {
+
+      if (!session) {
+        showLogin();
+        return;
       }
-    );
+
+      const isAdmin =
+        await checkAdmin(session.user.id);
+
+      if (!isAdmin) {
+
+        await supabaseClient.auth.signOut();
+
+        showLogin();
+
+        showMessage(
+          "Akun ini bukan admin.",
+          "error"
+        );
+
+        return;
+      }
+
+      currentUser =
+        session.user;
+
+      showDashboard();
+
+      populateCategories();
+
+      await loadProducts();
+    }
   }
+);
 
-  const logout =
-    document.querySelector("#logoutButton");
 
-  if (logout) {
-    logout.addEventListener(
-      "click",
-      logoutAdmin
-    );
-  }
+// ===============================
+// START
+// ===============================
 
-  const form =
-    document.querySelector("#productForm");
-
-  if (form) {
-    form.addEventListener(
-      "submit",
-      saveProduct
-    );
-  }
-
-  const imageInput =
-    document.querySelector("#productImage");
-
-  if (imageInput) {
-    imageInput.addEventListener(
-      "change",
-      handleImagePreview
-    );
-  }
-
-  const removeImage =
-    document.querySelector("#removeImageButton");
-
-  if (removeImage) {
-    removeImage.addEventListener(
-      "click",
-      removeCurrentImage
-    );
-  }
-
-  const cancel =
-    document.querySelector("#cancelEditButton");
-
-  if (cancel) {
-    cancel.addEventListener(
-      "click",
-      resetForm
-    );
-  }
-}
-
-async function startAdmin() {
-  setupEvents();
-  fillCategories();
-
-  const isAdmin =
-    await checkAdmin();
-
-  if (isAdmin) {
-    await loadProducts();
-  }
-}
-
-if (document.readyState === "loading") {
-  document.addEventListener(
-    "DOMContentLoaded",
-    startAdmin
-  );
-} else {
-  startAdmin();
-}
+loadSession();

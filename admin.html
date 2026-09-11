@@ -10,7 +10,7 @@
 
 <body class="admin-page">
 
-  <!-- ==================== LOGIN ==================== -->
+  <!-- LOGIN -->
   <section id="adminLogin" class="admin-login">
     <div class="admin-login-card">
 
@@ -23,23 +23,13 @@
       <form id="adminLoginForm">
 
         <div class="form-group">
-          <label for="adminEmail">Email</label>
+          <label for="adminEmail">Email Admin</label>
+
           <input
             type="email"
             id="adminEmail"
-            placeholder="Email admin"
+            placeholder="Masukkan email admin"
             autocomplete="email"
-            required
-          >
-        </div>
-
-        <div class="form-group">
-          <label for="adminPassword">Password</label>
-          <input
-            type="password"
-            id="adminPassword"
-            placeholder="Password"
-            autocomplete="current-password"
             required
           >
         </div>
@@ -49,26 +39,24 @@
           id="loginButton"
           class="btn-primary"
         >
-          Login
+          📧 Kirim Link Login
         </button>
 
       </form>
 
-      <!-- LUPA PASSWORD -->
-      <a
-        href="#"
-        id="forgotPasswordLink"
+      <p
         style="
-          display:block;
           margin-top:14px;
           text-align:center;
-          color:#5da9ff;
-          text-decoration:none;
-          cursor:pointer;
+          font-size:13px;
+          color:#9fb0c5;
+          line-height:1.5;
         "
       >
-        Lupa Password?
-      </a>
+        Link login akan dikirim ke email admin.
+        <br>
+        Tidak perlu memasukkan password.
+      </p>
 
       <div
         id="adminMessage"
@@ -87,15 +75,15 @@
   </section>
 
 
-  <!-- ==================== DASHBOARD ==================== -->
+  <!-- DASHBOARD -->
   <section
     id="adminDashboard"
     class="admin-dashboard"
     style="display:none;"
   >
 
-    <!-- HEADER -->
     <header class="admin-header">
+
       <div class="admin-header-inner">
 
         <div>
@@ -128,10 +116,10 @@
         </div>
 
       </div>
+
     </header>
 
 
-    <!-- CONTENT -->
     <main class="admin-main">
 
       <div
@@ -153,7 +141,6 @@
           </div>
         </div>
 
-
         <div class="admin-stat-card">
           <div class="admin-stat-icon">📊</div>
 
@@ -162,7 +149,6 @@
             <strong id="statStock">0</strong>
           </div>
         </div>
-
 
         <div class="admin-stat-card">
           <div class="admin-stat-icon">✅</div>
@@ -176,10 +162,11 @@
       </section>
 
 
-      <!-- ==================== PRODUCT FORM ==================== -->
+      <!-- PRODUCT FORM -->
       <section class="admin-section">
 
         <div class="admin-section-header">
+
           <div>
             <h2 id="formTitle">
               Tambah Produk
@@ -189,6 +176,7 @@
               Tambahkan produk baru ke katalog MR ALL IN.
             </p>
           </div>
+
         </div>
 
 
@@ -220,7 +208,6 @@
               </div>
             </div>
 
-
             <div class="image-upload-row">
 
               <label
@@ -237,7 +224,6 @@
                 hidden
               >
 
-
               <button
                 type="button"
                 id="removeImageButton"
@@ -248,7 +234,6 @@
               </button>
 
             </div>
-
 
             <small class="form-help">
               JPG, JPEG, PNG atau WEBP. Maksimal 5 MB.
@@ -377,20 +362,17 @@
       </section>
 
 
-      <!-- ==================== PRODUCT LIST ==================== -->
+      <!-- PRODUCT LIST -->
       <section class="admin-section">
 
         <div class="admin-section-header">
 
           <div>
-            <h2>
-              Daftar Produk
-            </h2>
+            <h2>Daftar Produk</h2>
 
             <p>
               Kelola semua produk yang tampil di toko.
             </p>
-
           </div>
 
         </div>
@@ -415,14 +397,10 @@
   </section>
 
 
-  <!-- ==================== SUPABASE ==================== -->
-
+  <!-- SUPABASE -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
   <script src="supabase-config.js"></script>
-
   <script src="products.js"></script>
-
   <script src="admin.js"></script>
 
 </body>
